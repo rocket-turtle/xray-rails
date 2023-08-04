@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Xray::Engine do
   context 'ActionView::Template monkeypatch #render' do
-    subject { ActionView::Template.new(nil, nil, nil, {}) }
+    subject { ActionView::Template.new(nil, nil, nil, *{}) }
     let(:xray_enabled_render_args) { ['template', { example_option: true }] }
     let(:xray_disabled_render_args) { ['template', { example_option: true, xray: false }] }
     let(:render_result) { '<html>Example</html>' }
