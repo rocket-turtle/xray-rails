@@ -17,7 +17,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'rails', '>= 6.1'
   gem.add_development_dependency 'rails', '~> 6.1.0'
 
-  gem.add_development_dependency 'rspec-rails', '~> 3.8'
+  gem.add_development_dependency 'rspec-rails', '~> 6.0'
 
   # Required for the dummy Rails app in spec/dummy
   gem.add_development_dependency 'sqlite3'
