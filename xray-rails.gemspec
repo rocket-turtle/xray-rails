@@ -24,6 +24,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'jquery-rails'
   gem.add_development_dependency 'haml'
   gem.add_development_dependency 'capybara'
+  gem.add_development_dependency 'byebug'
 
   unless ENV['CI'] == 'true'
     gem.add_development_dependency 'selenium-webdriver'
