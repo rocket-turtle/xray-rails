@@ -14,7 +14,8 @@ Gem::Specification.new do |gem|
   gem.version       = Xray::VERSION
   gem.license       = 'MIT'
 
-  gem.add_dependency 'rails', '>= 3.1.0'
+  gem.add_dependency 'rails', '>= 6.1'
+  gem.add_development_dependency 'rails', '~> 6.1.0'
 
   gem.add_development_dependency 'rspec-rails', '~> 3.8'
 
@@ -23,6 +24,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'jquery-rails'
   gem.add_development_dependency 'haml'
   gem.add_development_dependency 'capybara'
+
   unless ENV['CI'] == 'true'
     gem.add_development_dependency 'selenium-webdriver'
     gem.add_development_dependency 'puma'
