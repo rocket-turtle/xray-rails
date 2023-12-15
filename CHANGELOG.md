@@ -12,6 +12,37 @@ lesser changes or bug fixes.
 
 * Your contribution here!
 
+## [0.3.2.2][] (2023-12-15)
+* remove JavaServer Pages (JSP) support
+* update ruby 3.2
+* bundle update
+* drop support for Ruby 1.9 - remove xray/aliasing
+* use rspec-rails 6.1
+* add byebug
+* use and test rails 6.1
+* fix spec for macs
+* Convert specs to RSpec 3.9.3 syntax with Transpec
+* FIX ArgumentError: wrong number of arguments (given 4, expected 3)
+* remove non working capybara-screenshot
+* add .ruby-gemset .ruby-version
+
+## [0.3.2.1][] (2022-07-29)
+* Fix "undefined method safe_append=" on Ruby 3.0.0
+* Automatically add a nonce to script tag (#100)
+* In CI, we can't open the .html files saved by capybara-screenshot, so puts page.html instead so we can figure out why it failed
+* Fix test failures on Rails < 6 due to sprockets >= 4
+* Fix test error with Rails 6:
+* Locked rspec-rails to 3.x in the .gemspec
+* Load gems from Gemfile.local too, if present, so that developers can use some optional debugging tools like byebug and pry
+* Add capybara-screenshot so we can check out the .html document when a test fails
+* Add end-to-end test that actually tests in a real browser that pressing Ctrl+Shift+X makes the Xray UI appear
+* Update script_matcher to allow for .source and .debug suffixes that sometimes get added by Sprockets 4 pipelines
+* Add www.example.com to config.hosts
+* Don't test so many old versions
+* Test on Rails 6
+* follow Apple spelling conventions (#114)
+* Adapt to Sprockets 4 (#103)
+
 ## [0.3.2][] (2019-03-16)
 
 * Gracefully handle nil templates
