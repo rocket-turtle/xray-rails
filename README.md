@@ -14,12 +14,9 @@ Xray is the missing link between the browser and your app code. Press **command+
 
 ## Current Support
 
-Xray is intended for Rails 3.1+ and Ruby 1.9+.
+Xray is intended for Rails 6.1+ and Ruby 3.1+.
 
-So far, Xray can reveal:
-
-  * Rails views and partials
-  * Javascript templates if using the asset pipeline with the .jst extension
+It can reveal Rails views and partials
 
 ## Installation
 
