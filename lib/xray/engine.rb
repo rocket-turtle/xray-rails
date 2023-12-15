@@ -1,5 +1,4 @@
 module Xray
-
   # This is the main point of integration with Rails. This engine hooks into
   # Sprockets and monkey patches ActionView in order to augment the app's JS
   # and HTML templates with filepath information that can be used by xray.js
@@ -15,32 +14,6 @@ module Xray
 
     config.after_initialize do |app|
       ensure_asset_pipeline_enabled! app
-
-      # Monkey patch ActionView::Template to augment server-side templates
-      # with filepath information. See `Xray.augment_template` for details.
-      ActionView::Template.class_eval do
-        extend Xray::Aliasing
-
-        def render_with_xray(*args, **kwargs, &block)
-          path = identifier
-          view = args.first
-          source = render_without_xray(*args, **kwargs, &block)
-
-          suitable_template = !(view.respond_to?(:mailer) && view.mailer) &&
-                              !path.include?('_xray_bar') &&
-                              path =~ /\.(html|slim|haml|hamlc)(\.|$)/ &&
-                              path !~ /\.(js|json|css)(\.|$)/
-
-          options = args.last.kind_of?(Hash) ? args.last : {}
-
-          if source && suitable_template && !(options.has_key?(:xray) && (options[:xray] == false))
-            Xray.augment_template(source, path)
-          else
-            source
-          end
-        end
-        xray_method_alias :render
-      end
 
       # Sprockets preprocessor interface which supports all versions of Sprockets.
       # See: https://github.com/rails/sprockets/blob/master/guides/extending_sprockets.md#supporting-all-versions-of-sprockets-in-processors
