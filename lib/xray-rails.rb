@@ -35,15 +35,9 @@ module Xray
   #   <!-- XRAY END 123 -->
   def self.augment_template(source, path)
     id = next_id
-    if source.include?('<!DOCTYPE')
-      return source
-    end
-    # skim doesn't allow html comments, so use skim's comment syntax if it's skim
-    if path =~ /\.(skim|hamlc)(\.|$)/
-      augmented = "/!XRAY START #{id} #{path}\n#{source}\n/!XRAY END #{id}"
-    else
-      augmented = "<!--XRAY START #{id} #{path}-->\n#{source}\n<!--XRAY END #{id}-->"
-    end
+    return source if source.include?('<!DOCTYPE')
+
+    augmented = "<!--XRAY START #{id} #{path}-->\n#{source}\n<!--XRAY END #{id}-->"
     ActiveSupport::SafeBuffer === source ? ActiveSupport::SafeBuffer.new(augmented) : augmented
   end
 

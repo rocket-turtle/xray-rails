@@ -12,6 +12,8 @@ lesser changes or bug fixes.
 
 * Your contribution here!
 
+* remove the support for skim and hamlc
+
 ## [0.3.2.2][] (2023-12-15)
 * remove JavaServer Pages (JSP) support
 * update ruby 3.2
