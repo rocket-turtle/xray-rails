@@ -77,18 +77,8 @@ module Xray
     end
 
     def inject_xray_bar!(html)
-      html.sub!(/<body[^>]*>/) { "#{$~}\n#{render_xray_bar}" }
-    end
-
-    def render_xray_bar
-      if ApplicationController.respond_to?(:render)
-        # Rails 5
-        ApplicationController.render(:partial => "/xray_bar").html_safe
-      else
-        # Rails <= 4.2
-        ac = ActionController::Base.new
-        ac.render_to_string(:partial => '/xray_bar').html_safe
-      end
+      xray_bar = ApplicationController.render(partial: "/xray_bar")
+      html.sub!(/<body[^>]*>/) { "#{$~}\n#{xray_bar}" }
     end
 
     # Matches:
