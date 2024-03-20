@@ -14,7 +14,7 @@ Xray is the missing link between the browser and your app code. Press **command+
 
 ## Current Support
 
-Xray is intended for Rails 6.1+ and Ruby 3.1+.
+Xray is intended for Rails 6.1+, Ruby 3.1+ and Sprockets 4.
 
 It can reveal Rails views and partials
 

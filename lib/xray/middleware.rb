@@ -94,7 +94,7 @@ module Xray
         (2|3)?                 # Optional jQuery version specification
         ([-.]{1}[\d\.]+)?      # Optional version identifier (e.g. -1.9.1)
         ([-.]{1}min)?          # Optional -min suffix
-        (\.(?:self|source|debug))?  # Sprockets 3 appends .self to the filename; Sprockets 4 appends .source or .debug
+        (\.(?:source|debug))?  # Sprockets 4 appends .source or .debug
         (-\h{32,64})?          # Fingerprint varies based on Sprockets version
         \.js                   # Must have .js extension
         [^>]+><\/script>
