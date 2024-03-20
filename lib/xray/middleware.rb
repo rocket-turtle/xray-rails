@@ -37,32 +37,30 @@ module Xray
       else
         status, headers, response = @app.call(env)
 
-        if html_headers?(status, headers) && body = response_body(response)
-          if body =~ script_matcher('xray')
+        if html_headers?(status, headers)
+          body = response_body(response)
+          if body && body =~ xray_script_matcher
             # Inject the xray bar if xray.js is already on the page
             inject_xray_bar!(body)
-          elsif Rails.application.config.assets.debug
-            # Otherwise try to inject xray.js if assets are unbundled
-            if append_js!(body, 'jquery', 'xray')
-              inject_xray_bar!(body)
+
+            content_length = body.bytesize.to_s
+
+            # For rails v4.2.0+ compatibility
+            if defined?(ActionDispatch::Response::RackBody) && ActionDispatch::Response::RackBody === response
+              response = response.instance_variable_get(:@response)
             end
-          end
 
-          content_length = body.bytesize.to_s
-
-          # For rails v4.2.0+ compatibility
-          if defined?(ActionDispatch::Response::RackBody) && ActionDispatch::Response::RackBody === response
-            response = response.instance_variable_get(:@response)
-          end
-
-          # Modifying the original response obj maintains compatibility with other middlewares
-          if ActionDispatch::Response === response
-            response.body = [body]
-            response.header['Content-Length'] = content_length unless committed?(response)
-            response.to_a
+            # Modifying the original response obj maintains compatibility with other middlewares
+            if ActionDispatch::Response === response
+              response.body = [body]
+              response.header['Content-Length'] = content_length unless committed?(response)
+              response.to_a
+            else
+              headers['Content-Length'] = content_length
+              [status, headers, [body]]
+            end
           else
-            headers['Content-Length'] = content_length
-            [status, headers, [body]]
+            [status, headers, response]
           end
         else
           [status, headers, response]
@@ -82,39 +80,16 @@ module Xray
     end
 
     # Matches:
-    #   <script src="/assets/jquery.js"></script>
-    #   <script src="/assets/jquery-min.js"></script>
-    #   <script src="/assets/jquery.min.1.9.1.js"></script>
-    #   <script src="/assets/jquery.min.1.9.1-89255b9dbf3de2fbaa6754b3a00db431.js"></script>
     #   <script src="/assets/xray.debug-1f24c4eb56c76ca56a881d5560552a44e98c0eeb30f47f8775a3d5557c7bffe3.js" nonce="UCCdiIBNaam7el9cVHptyA=="></script>
-    def script_matcher(script_name)
+    def xray_script_matcher
       /
         <script[^>]+
-        \/#{script_name}
-        (2|3)?                 # Optional jQuery version specification
-        ([-.]{1}[\d\.]+)?      # Optional version identifier (e.g. -1.9.1)
-        ([-.]{1}min)?          # Optional -min suffix
+        xray
         (\.(?:source|debug))?  # Sprockets 4 appends .source or .debug
         (-\h{32,64})?          # Fingerprint varies based on Sprockets version
         \.js                   # Must have .js extension
         [^>]+><\/script>
       /x
-    end
-
-    def nonce_from_meta_tag(html)
-      html[/<meta name="csp-nonce" content="([^"]*)"/, 1].presence
-    end
-
-    # Appends the given `script_name` after the `after_script_name`.
-    def append_js!(html, after_script_name, script_name)
-      html.sub!(script_matcher(after_script_name)) do
-        nonce = nonce_from_meta_tag(html)
-        "#{$~}\n" + helper.javascript_include_tag(script_name, nonce: nonce)
-      end
-    end
-
-    def helper
-      ActionController::Base.helpers
     end
 
     def html_headers?(status, headers)

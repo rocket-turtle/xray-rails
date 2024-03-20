@@ -36,18 +36,13 @@ Then bundle and delete your cached assets:
 $ bundle && rm -rf tmp/cache/assets
 ```
 
-Restart your app, visit it in your browser, and press **command+shift+x** (Mac) or **ctrl+shift+x** to reveal the overlay.
+You need to insert Xray's script *after* jquery in your template as ist own script tag.
 
-#### Note about `config.assets.debug`
-
-By default, Xray will insert itself into your views automatically. To do this, `config.assets.debug = true` (Rails' default) must be set in development.rb.
-
-Otherwise, you can insert Xray's scripts yourself, for example like so in application.js:
-
-```js
-//= require jquery
-//= require xray
 ```
+= javascript_include_tag 'xray', nonce: true if Rails.env.development?
+```
+
+Restart your app, visit it in your browser, and press **command+shift+x** (Mac) or **ctrl+shift+x** to reveal the overlay.
 
 ## Configuration
 
@@ -71,7 +66,7 @@ For something more complex, use the `$file` placeholder.
 ## How this works
 
 * At run time, HTML responses from Rails are wrapped with HTML comments containing filepath info.
-* A middleware inserts `xray.js`, `xray.css`, and the Xray bar into all successful HTML response bodies.
+* A middleware inserts `xray.css` and the Xray bar into all successful HTML response bodies.
 * When the overlay is shown, `xray.js` examines the inserted filepath info to build the overlay.
 
 ## Disabling Xray
