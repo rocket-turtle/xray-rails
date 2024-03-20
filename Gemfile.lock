@@ -209,6 +209,7 @@ GEM
 
 PLATFORMS
   arm64-darwin-22
+  arm64-darwin-23
 
 DEPENDENCIES
   byebug
@@ -224,4 +225,4 @@ DEPENDENCIES
   xray-rails!
 
 BUNDLED WITH
-   2.4.10
+   2.4.19
