@@ -1,5 +1,3 @@
-require "action_view/template"
-
 module Xray
   module Rendering
     def render(*args, **kwargs, &block)
@@ -21,4 +19,6 @@ module Xray
   end
 end
 
-ActionView::Template.prepend Xray::Rendering
+ActiveSupport.on_load(:action_view) do
+  ActionView::Template.prepend Xray::Rendering
+end

@@ -2,7 +2,8 @@ PATH
   remote: .
   specs:
     xray-rails (0.3.2.2)
-      rails (>= 6.1)
+      actionview (>= 6.1)
+      activesupport (>= 6.1)
 
 GEM
   remote: https://rubygems.org/

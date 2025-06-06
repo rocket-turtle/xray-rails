@@ -14,7 +14,8 @@ Gem::Specification.new do |gem|
   gem.version       = Xray::VERSION
   gem.license       = 'MIT'
 
-  gem.add_dependency 'rails', '>= 6.1'
+  gem.add_dependency 'activesupport', '>= 6.1'
+  gem.add_dependency 'actionview', '>= 6.1'
   gem.add_development_dependency 'rails', '~> 6.1.0'
 
   gem.add_development_dependency 'rspec-rails', '~> 6.0'

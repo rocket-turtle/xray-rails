@@ -1,5 +1,3 @@
-require "open3"
-
 module Xray
   OPEN_PATH = '/_xray/open'
   UPDATE_CONFIG_PATH = '/_xray/config'
