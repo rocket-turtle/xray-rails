@@ -12,12 +12,18 @@ lesser changes or bug fixes.
 
 * Your contribution here!
 
+## [0.3.2.3][] (2023-12-15)
+* update ruby 3.3
+* Fix ActiveRecord load order issues using ActiveSupport.on_load
+* update ruby 3.2.3
+* remove xray.js autoinsert. You need to add xray.js to your template.
+* remove version check for Rails 5.2
+* remove Rails <= 4.2
 * remove the support for skim and hamlc
 
 ## [0.3.2.2][] (2023-12-15)
 * remove JavaServer Pages (JSP) support
 * update ruby 3.2
-* bundle update
 * drop support for Ruby 1.9 - remove xray/aliasing
 * use rspec-rails 6.1
 * add byebug
