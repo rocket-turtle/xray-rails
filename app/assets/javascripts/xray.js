@@ -190,7 +190,7 @@
     function Overlay () {
       Xray.Overlay.singletonInstance = this;
       this.bar = new XrayBar('#xray-bar');
-      this.settings = new Xray.Settings('#xray-settings');
+      this.settings = new XraySettings('#xray-settings');
       this.shownBoxes = [];
       this.$overlay = $('<div id="xray-overlay">');
       this.$overlay.click((() => {
@@ -312,69 +312,70 @@
     };
   }
 
-  Xray.Settings = (function () {
-    function Settings (el) {
-      this.displayUpdateMsg = this.displayUpdateMsg.bind(this);
-      this.save = this.save.bind(this);
-      this.toggle = this.toggle.bind(this);
-      this.el = el;
+  class XraySettings {
+    settings;
+    $el_memo = null;
+
+    constructor (settings) {
+      this.settings = settings;
     }
 
-    Settings.prototype.$el = function () {
-      if ((this.$el_memo != null) && $.contains(window.document, this.$el_memo[0])) {
+    $el = () => {
+      if (this.$el_memo && document.body.contains(this.$el_memo)) {
         return this.$el_memo;
       }
-      this.$el_memo = $(this.el);
-      this.$el_memo.find('form').submit(this.save);
+
+      this.$el_memo = document.querySelector(this.settings);
+      if (!this.$el_memo) return null;
+
+      const form = this.$el_memo.querySelector('form');
+      if (form) {
+        form.addEventListener('submit', this.save);
+      }
+
       return this.$el_memo;
     };
 
-    Settings.prototype.toggle = function () {
-      return this.$el().toggle();
-    };
-
-    Settings.prototype.save = function (e) {
-      let editor;
-      e.preventDefault();
-      editor = this.$el().find('#xray-editor-input').val();
-      return $.ajax({
-        url: '/_xray/config',
-        type: 'POST',
-        data: {
-          editor: editor
-        },
-        success: (( _this ) => {
-          return () => {
-            return _this.displayUpdateMsg(true);
-          };
-        })(this),
-        error: (( _this ) => {
-          return () => {
-            return _this.displayUpdateMsg(false);
-          };
-        })(this)
-      });
-    };
-
-    Settings.prototype.displayUpdateMsg = function (success) {
-      let $msg;
-      if (success) {
-        $msg = $('<span class=\'xray-settings-success xray-settings-update-msg\'>Success!</span>');
-      } else {
-        $msg = $('<span class=\'xray-settings-error xray-settings-update-msg\'>Uh oh, something went wrong!</span>');
+    toggle = () => {
+      const $el = this.$el();
+      if ($el) {
+        const current = window.getComputedStyle($el).display;
+        $el.style.display = current === 'none' ? 'block' : 'none';
       }
-      this.$el().append($msg);
-      return $msg.delay(2000).fadeOut(500, (( _this ) => {
-        return () => {
-          $msg.remove();
-          return _this.toggle();
-        };
-      })(this));
     };
 
-    return Settings;
+    save = (e) => {
+      e.preventDefault();
+      const $el = this.$el();
+      if (!$el) return;
 
-  })();
+      const editorInput = $el.querySelector('#xray-editor-input');
+      const editor = editorInput ? editorInput.value : '';
+
+      fetch('/_xray/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ editor })
+      })
+        .then(() => this.displayUpdateMsg(true))
+        .catch(() => this.displayUpdateMsg(false));
+    };
+
+    displayUpdateMsg = (success) => {
+      const $el = this.$el();
+      if (!$el) return;
+
+      const msg = document.createElement('span');
+      msg.className = `xray-settings-${success ? 'success' : 'error'} xray-settings-update-msg`;
+      msg.textContent = success ? 'Success!' : 'Uh oh, something went wrong!';
+      $el.appendChild(msg);
+
+      setTimeout(() => {
+        msg.remove();
+        this.toggle();
+      }, 3000);
+    }
+  }
 
   util = {
     computeBoundingBox: function ($contents) {
