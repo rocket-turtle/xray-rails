@@ -1,7 +1,9 @@
 (function () {
-  var $, MAX_ZINDEX, util,
-    hasProp = {}.hasOwnProperty,
-    bind = function (fn, me) { return function () { return fn.apply(me, arguments) } },
+  const $ = window.jQuery;
+  const MAX_ZINDEX = 2147483647;
+  const hasProp = Object.prototype.hasOwnProperty;
+
+  var util,
     extend = function (child, parent) {
       for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key] }
 
@@ -15,11 +17,7 @@
 
   window.Xray = {}
 
-  if (!($ = window.jQuery)) {
-    return
-  }
-
-  MAX_ZINDEX = 2147483647
+  if (!($)) { return }
 
   Xray.init = (function () {
     var is_mac
@@ -68,14 +66,15 @@
 
   Xray.findTemplates = function () {
     return util.bm('findTemplates', function () {
-      var $templateContents, _, comment, comments, el, i, id, len, path, ref, results
+      var $templateContents, _, comment, comments, el, id, path
       comments = $('*:not(iframe,script)').contents().filter(function () {
-        return this.nodeType === 8 && this.data.slice(0, 10) === 'XRAY START'
+        return this.nodeType === 8 && this.data.startsWith('XRAY START')
       })
-      results = []
-      for (i = 0, len = comments.length; i < len; i++) {
-        comment = comments[i]
-        ref = comment.data.match(/^XRAY START (\d+) (.*)$/), _ = ref[0], id = ref[1], path = ref[2]
+      comments.each(function (_, comment) {
+        var ref
+        ref = comment.data.match(/^XRAY START (\d+) (.*)$/)
+        if (!ref) return
+        _ = ref[0], id = ref[1], path = ref[2]
         $templateContents = new jQuery
         el = comment.nextSibling
         while (!(!el || (el.nodeType === 8 && el.data === ('XRAY END ' + id)))) {
@@ -88,18 +87,17 @@
           el.parentNode.removeChild(el)
         }
         comment.parentNode.removeChild(comment)
-        results.push(Xray.TemplateSpecimen.add($templateContents, {
+        Xray.TemplateSpecimen.add($templateContents, {
           name: path.split('/').slice(-1)[0],
           path: path
-        }))
-      }
-      return results
+        })
+      })
     })
   }
 
   Xray.open = function (path) {
     return $.ajax({
-      url: '/_xray/open?path=' + path
+      url: '/_xray/open?path=' + encodeURIComponent(path)
     })
   }
 
@@ -154,7 +152,7 @@
       if (info == null) {
         info = {}
       }
-      this.makeLabel = bind(this.makeLabel, this)
+      this.makeLabel = this.makeLabel.bind(this)
       this.el = contents instanceof jQuery ? contents[0] : contents
       this.$contents = $(contents)
       this.name = info.name
@@ -324,21 +322,29 @@
       this.$el_memo.css({
         zIndex: MAX_ZINDEX
       })
-      this.$el_memo.find('#xray-bar-controller-path .xray-bar-btn').click(function () {
+
+      var $controllerBtns = this.$el_memo.find('#xray-bar-controller-path .xray-bar-btn')
+      var $allToggler = this.$el_memo.find('.xray-bar-all-toggler')
+      var $templatesToggler = this.$el_memo.find('.xray-bar-templates-toggler')
+      var $viewsToggler = this.$el_memo.find('.xray-bar-views-toggler')
+      var $settingsBtn = this.$el_memo.find('.xray-bar-settings-btn')
+
+      $controllerBtns.on('click', function () {
         return Xray.open($(this).attr('data-path'))
       })
-      this.$el_memo.find('.xray-bar-all-toggler').click(function () {
+      $allToggler.on('click', function () {
         return Xray.show()
       })
-      this.$el_memo.find('.xray-bar-templates-toggler').click(function () {
+      $templatesToggler.on('click', function () {
         return Xray.show('templates')
       })
-      this.$el_memo.find('.xray-bar-views-toggler').click(function () {
+      $viewsToggler.on('click', function () {
         return Xray.show('views')
       })
-      this.$el_memo.find('.xray-bar-settings-btn').click(function () {
+      $settingsBtn.on('click', function () {
         return Xray.toggleSettings()
       })
+
       return this.$el_memo
     }
 
@@ -365,9 +371,9 @@
 
   Xray.Settings = (function () {
     function Settings (el) {
-      this.displayUpdateMsg = bind(this.displayUpdateMsg, this)
-      this.save = bind(this.save, this)
-      this.toggle = bind(this.toggle, this)
+      this.displayUpdateMsg = this.displayUpdateMsg.bind(this)
+      this.save = this.save.bind(this)
+      this.toggle = this.toggle.bind(this)
       this.el = el
     }
 
