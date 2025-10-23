@@ -23,7 +23,6 @@ Gem::Specification.new do |gem|
   # Required for the dummy Rails app in spec/dummy
   gem.add_development_dependency 'sqlite3', '~> 1.7'
   gem.add_development_dependency 'jquery-rails'
-  gem.add_development_dependency 'haml'
   gem.add_development_dependency 'capybara'
   gem.add_development_dependency 'byebug'
 

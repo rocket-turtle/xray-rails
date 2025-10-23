@@ -8,7 +8,7 @@ module Xray
 
       return source if view.respond_to?(:mailer) && view.mailer
       return source if path.include?('_xray_bar')
-      return source if !(path =~ /\.(html|slim|haml)(\.|$)/)
+      return source if !(path =~ /\.(html|slim)(\.|$)/)
       return source if path =~ /\.(js|json|css)(\.|$)/
 
       options = args.last.kind_of?(Hash) ? args.last : {}

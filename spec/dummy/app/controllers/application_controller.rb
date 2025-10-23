@@ -18,8 +18,4 @@ class ApplicationController < ActionController::Base
   def non_html
     render json: {foo: 'bar'}
   end
-
-  def made_with_haml
-    respond_to :json
-  end
 end

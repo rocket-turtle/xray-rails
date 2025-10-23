@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    xray-rails (0.3.2.2)
+    xray-rails (0.3.2.3)
       actionview (>= 6.1)
       activesupport (>= 6.1)
 
@@ -88,10 +88,6 @@ GEM
     erubi (1.13.1)
     globalid (1.2.1)
       activesupport (>= 6.1)
-    haml (6.3.0)
-      temple (>= 0.8.2)
-      thor
-      tilt
     i18n (1.14.7)
       concurrent-ruby (~> 1.0)
     jquery-rails (4.6.0)
@@ -193,9 +189,7 @@ GEM
       activesupport (>= 6.1)
       sprockets (>= 3.0.0)
     sqlite3 (1.7.3-arm64-darwin)
-    temple (0.10.3)
     thor (1.3.2)
-    tilt (2.6.0)
     timeout (0.4.3)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
@@ -220,7 +214,6 @@ PLATFORMS
 DEPENDENCIES
   byebug
   capybara
-  haml
   jquery-rails
   puma
   rails (~> 6.1.0)
