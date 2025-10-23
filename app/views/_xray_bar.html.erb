@@ -19,23 +19,14 @@
       <% end %>
     </div>
   <% end %>
-  <div id="xray-bar-togglers">
-    <span class="xray-bar-btn xray-bar-all-toggler xray-icon-search"></span>
-    <span class="xray-bar-btn xray-bar-templates-toggler">
-      templates
-    </span>
-    <span class="xray-bar-btn xray-bar-views-toggler">
-      views
-    </span>
-  </div>
   <span class="xray-bar-settings-btn xray-icon-cog"></span>
   <div id="xray-settings" style="display:none">
     <form>
       <label for="xray-editor-input">Editor</label>
       <input id="xray-editor-input" type="text" value="<%= Xray.config.editor %>">
-      <button type="submit">Save</button>
       <p>Settings are saved to <%= Xray.config.config_file %></p>
-  </form>
+      <button type="submit">Save</button>
+    </form>
   </div>
   <%= stylesheet_link_tag :xray %>
 </div>

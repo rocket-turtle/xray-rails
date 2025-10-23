@@ -6,16 +6,6 @@
   const hasProp = Object.prototype.hasOwnProperty;
 
   let util;
-  const extend = function (child, parent) {
-    for (let key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; }
-
-    function ctor () { this.constructor = child; }
-
-    ctor.prototype = parent.prototype;
-    child.prototype = new ctor();
-    child.__super__ = parent.prototype;
-    return child;
-  };
 
   window.Xray = {};
 
@@ -41,15 +31,11 @@
       }
     });
     return $(() => {
-      new Xray.Overlay;
+      new Xray.Overlay();
       Xray.findTemplates();
       return typeof console !== 'undefined' && console !== null ? console.log('Ready to Xray. Press ' + (is_mac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.') : void 0;
     });
   })();
-
-  Xray.specimens = function () {
-    return Xray.ViewSpecimen.all.concat(Xray.TemplateSpecimen.all);
-  };
 
   Xray.constructorInfo = function (constructor) {
     let func, info, ref;
@@ -88,7 +74,8 @@
         el.parentNode.removeChild(el);
       }
       comment.parentNode.removeChild(comment);
-      Xray.TemplateSpecimen.add($templateContents, {
+
+      Xray.Specimen.add($templateContents, {
         name: path.split('/').slice(-1)[0],
         path: path
       });
@@ -101,11 +88,8 @@
     });
   };
 
-  Xray.show = function (type) {
-    if (type == null) {
-      type = null;
-    }
-    return Xray.Overlay.instance().show(type);
+  Xray.show = function () {
+    return Xray.Overlay.instance().show();
   };
 
   Xray.hide = function () {
@@ -117,6 +101,8 @@
   };
 
   Xray.Specimen = (function () {
+    Specimen.all = [];
+
     Specimen.add = function (el, info) {
       if (info == null) {
         info = {};
@@ -173,7 +159,7 @@
 
     Specimen.prototype.makeBox = function () {
       this.bounds = util.computeBoundingBox(this.$contents);
-      this.$box = $('<div class=\'xray-specimen ' + this.constructor.name + '\'>').css(this.bounds).attr('title', this.path);
+      this.$box = $('<div class="xray-specimen">').css(this.bounds).attr('title', this.path);
       if (this.$contents.css('position') === 'fixed') {
         this.$box.css({
           position: 'fixed',
@@ -186,42 +172,15 @@
           return Xray.open(_this.path);
         };
       })(this));
-      return this.$box.append(this.makeLabel);
+      return this.$box.append(this.makeLabel());
     };
 
     Specimen.prototype.makeLabel = function () {
-      return $('<div class=\'xray-specimen-handle ' + this.constructor.name + '\'>').append(this.name);
+      return $('<div class="xray-specimen-handle">').append(this.name);
     };
 
     return Specimen;
-
   })();
-
-  Xray.ViewSpecimen = (function (superClass) {
-    extend(ViewSpecimen, superClass);
-
-    function ViewSpecimen () {
-      return ViewSpecimen.__super__.constructor.apply(this, arguments);
-    }
-
-    ViewSpecimen.all = [];
-
-    return ViewSpecimen;
-
-  })(Xray.Specimen);
-
-  Xray.TemplateSpecimen = (function (superClass) {
-    extend(TemplateSpecimen, superClass);
-
-    function TemplateSpecimen () {
-      return TemplateSpecimen.__super__.constructor.apply(this, arguments);
-    }
-
-    TemplateSpecimen.all = [];
-
-    return TemplateSpecimen;
-
-  })(Xray.Specimen);
 
   Xray.Overlay = (function () {
     Overlay.instance = function () {
@@ -246,26 +205,14 @@
       this.reset();
       Xray.isShowing = true;
       let element, i, len, results, specimens;
-      this.bar.$el().find('#xray-bar-togglers .xray-bar-btn').removeClass('active');
       if (!this.$overlay.is(':visible')) {
         $('body').append(this.$overlay);
         this.bar.show();
       }
-      switch (type) {
-        case 'templates':
-          Xray.findTemplates();
-          specimens = Xray.TemplateSpecimen.all;
-          this.bar.$el().find('.xray-bar-templates-toggler').addClass('active');
-          break;
-        case 'views':
-          specimens = Xray.ViewSpecimen.all;
-          this.bar.$el().find('.xray-bar-views-toggler').addClass('active');
-          break;
-        default:
-          Xray.findTemplates();
-          specimens = Xray.specimens();
-          this.bar.$el().find('.xray-bar-all-toggler').addClass('active');
-      }
+
+      Xray.findTemplates();
+      specimens = Xray.Specimen.all;
+
       results = [];
       for (i = 0, len = specimens.length; i < len; i++) {
         element = specimens[i];
@@ -313,31 +260,15 @@
         return this.$el_memo;
       }
       this.$el_memo = $(this.el);
-      this.$el_memo.css({
-        zIndex: MAX_ZINDEX
-      });
+      this.$el_memo.css({ zIndex: MAX_ZINDEX });
 
-      let $controllerBtns = this.$el_memo.find('#xray-bar-controller-path .xray-bar-btn');
-      let $allToggler = this.$el_memo.find('.xray-bar-all-toggler');
-      let $templatesToggler = this.$el_memo.find('.xray-bar-templates-toggler');
-      let $viewsToggler = this.$el_memo.find('.xray-bar-views-toggler');
-      let $settingsBtn = this.$el_memo.find('.xray-bar-settings-btn');
+      const $controllerBtns = this.$el_memo.find('#xray-bar-controller-path .xray-bar-btn');
+      const $settingsBtn = this.$el_memo.find('.xray-bar-settings-btn');
 
       $controllerBtns.on('click', function () {
         return Xray.open($(this).attr('data-path'));
       });
-      $allToggler.on('click', () => {
-        return Xray.show();
-      });
-      $templatesToggler.on('click', () => {
-        return Xray.show('templates');
-      });
-      $viewsToggler.on('click', () => {
-        return Xray.show('views');
-      });
-      $settingsBtn.on('click', () => {
-        return Xray.toggleSettings();
-      });
+      $settingsBtn.on('click', () => Xray.toggleSettings());
 
       return this.$el_memo;
     };
@@ -429,37 +360,27 @@
 
   util = {
     computeBoundingBox: function ($contents) {
-      let $el, boxFrame, el, frame, i, len;
       if ($contents.length === 1 && $contents.height() <= 0) {
         return util.computeBoundingBox($contents.children());
       }
-      boxFrame = {
+      const boxFrame = {
         top: Number.POSITIVE_INFINITY,
         left: Number.POSITIVE_INFINITY,
         right: Number.NEGATIVE_INFINITY,
         bottom: Number.NEGATIVE_INFINITY
       };
-      for (i = 0, len = $contents.length; i < len; i++) {
-        el = $contents[i];
-        $el = $(el);
-        if (!$el.is(':visible')) {
-          continue;
-        }
-        frame = $el.offset();
+
+      const visibleElements = $contents.filter(':visible');
+      for (let i = 0; i < visibleElements.length; i++) {
+        const el = visibleElements[i];
+        const $el = $(el);
+        const frame = $el.offset();
         frame.right = frame.left + $el.outerWidth();
         frame.bottom = frame.top + $el.outerHeight();
-        if (frame.top < boxFrame.top) {
-          boxFrame.top = frame.top;
-        }
-        if (frame.left < boxFrame.left) {
-          boxFrame.left = frame.left;
-        }
-        if (frame.right > boxFrame.right) {
-          boxFrame.right = frame.right;
-        }
-        if (frame.bottom > boxFrame.bottom) {
-          boxFrame.bottom = frame.bottom;
-        }
+        if (frame.top < boxFrame.top) boxFrame.top = frame.top;
+        if (frame.left < boxFrame.left) boxFrame.left = frame.left;
+        if (frame.right > boxFrame.right) boxFrame.right = frame.right;
+        if (frame.bottom > boxFrame.bottom) boxFrame.bottom = frame.bottom;
       }
       return {
         left: boxFrame.left,
@@ -469,5 +390,4 @@
       };
     }
   };
-
-}).call(this);
+})();

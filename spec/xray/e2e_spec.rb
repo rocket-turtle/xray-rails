@@ -16,7 +16,7 @@ describe Xray, "in a Rails app (end-to-end)", :js do
     expect(page.find('script[src^="/assets/xray"]')[:nonce]).to eq page.find('meta[name="csp-nonce"]')[:content]
     expect(page).to have_selector('#xray-bar')
 
-    expect(page).to have_no_selector('.xray-specimen-handle.TemplateSpecimen', text: 'root.html.erb')
+    expect(page).to have_no_selector('.xray-specimen-handle', text: 'root.html.erb')
 
     if RUBY_PLATFORM.include?('darwin')
       find('body').send_keys [:command, :shift, 'x']
@@ -24,6 +24,6 @@ describe Xray, "in a Rails app (end-to-end)", :js do
       find('body').send_keys [:control, :shift, 'x']
     end
 
-    expect(page).to have_selector('.xray-specimen-handle.TemplateSpecimen', text: 'root.html.erb')
+    expect(page).to have_selector('.xray-specimen-handle', text: 'root.html.erb')
   end
 end unless ENV['CI'] == 'true'

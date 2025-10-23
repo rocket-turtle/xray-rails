@@ -44,8 +44,8 @@
 
 .xray-specimen {
   position: absolute;
-  background: rgba(255,255,255,0.15);
-  outline: 1px solid rgba(255,255,255,0.8);
+  background: rgba(255,50,50,0.1);
+  outline: 1px solid rgba(255,50,50,0.8);
   outline-offset: -1px;
   color: #666;
   font-family: "Helvetica Neue", sans-serif;
@@ -55,29 +55,15 @@
 
   .xray-specimen:hover {
     cursor: pointer;
-    background: rgba(255,255,255,0.4);
-  }
-
-  .xray-specimen.TemplateSpecimen {
-    outline: 1px solid rgba(255,50,50,0.8);
-    background: rgba(255,50,50,0.1);
-  }
-
-  .xray-specimen.TemplateSpecimen:hover {
     background: rgba(255,50,50,0.4);
   }
 
   .xray-specimen-handle {
     float:left;
-    background: #fff;
-    padding: 0 3px;
-    color: #333;
-    font-size: 10px;
-  }
-
-  .xray-specimen-handle.TemplateSpecimen {
     background: rgba(255,50,50,0.8);
+    padding: 0 3px;
     color: #fff;
+    font-size: 10px;
   }
 
 #xray-bar {
@@ -194,54 +180,6 @@
     #xray-bar-controller-path .xray-bar-view:hover,
     #xray-bar-controller-path .xray-bar-view:hover b:before { background-color: #ff4c36; }
 
-  #xray-bar #xray-bar-togglers {
-    float: left;
-    margin-left: 20px;
-  }
-
-    #xray-bar #xray-bar-togglers .xray-bar-btn {
-      border-radius: 0;
-      margin-right: 0;
-      color: #999;
-    }
-
-    #xray-bar #xray-bar-togglers .xray-bar-btn:first-child {
-      border-radius: 2px 0 0 2px;
-    }
-
-    #xray-bar #xray-bar-togglers .xray-bar-btn:last-child {
-      border-radius: 0 2px 2px 0;
-    }
-
-    #xray-bar #xray-bar-togglers .xray-bar-btn:before {
-      font-size: 9px;
-      vertical-align: middle;
-      margin-bottom: 1px;
-      margin-right: 5px;
-      background: rgba(255,255,255,0.2);
-      color: #eee;
-      padding: 2px 4px;
-      text-shadow: none;
-    }
-
-    #xray-bar #xray-bar-togglers .xray-bar-btn.active {
-      background: #555;
-      color: #fff;
-    }
-
-    #xray-bar #xray-bar-togglers .xray-bar-templates-toggler:before { content: 'HTML'; }
-    #xray-bar #xray-bar-togglers .xray-bar-templates-toggler.active:before { background: red; }
-    #xray-bar #xray-bar-togglers .xray-bar-views-toggler:before { content: 'JS'; }
-    #xray-bar #xray-bar-togglers .xray-bar-views-toggler.active:before { background: #fff; color: #333; }
-    #xray-bar #xray-bar-togglers .xray-bar-styles-toggler:before { content: 'CSS'; }
-
-    #xray-bar #xray-bar-togglers .xray-icon-search:before {
-      font-size: 16px;
-      background: none;
-      padding: 0;
-      margin: 0;
-    }
-
   #xray-bar .xray-bar-settings-btn {
     position: absolute;
     right: 10px;
@@ -294,12 +232,11 @@
   }
 
   #xray-settings button {
-    position: absolute;
-    right: 18px;
-    left: 18px;
-    bottom: 10px;
+    width: 100%;
+    margin: 7px;
     padding: 7px;
     color: #fff;
+    border-radius: 3px;
     background: #04be00;
     text-align: center;
     cursor: pointer;
@@ -346,4 +283,3 @@
 .xray-icon-github:before { content: '\f056'; } /* '' */
 .xray-icon-columns:before { content: '\f0db'; } /* '' */
 .xray-icon-doc:before { content: '📄'; } /* '\1f4c4' */
-.xray-icon-search:before { content: '🔍'; } /* '\1f50d' */
