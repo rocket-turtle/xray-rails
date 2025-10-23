@@ -1,399 +1,401 @@
 (function () {
+  'use strict';
+
   const $ = window.jQuery;
   const MAX_ZINDEX = 2147483647;
   const hasProp = Object.prototype.hasOwnProperty;
 
   var util,
     extend = function (child, parent) {
-      for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key] }
+      for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; }
 
-      function ctor () { this.constructor = child }
+      function ctor () { this.constructor = child; }
 
-      ctor.prototype = parent.prototype
-      child.prototype = new ctor()
-      child.__super__ = parent.prototype
-      return child
-    }
+      ctor.prototype = parent.prototype;
+      child.prototype = new ctor();
+      child.__super__ = parent.prototype;
+      return child;
+    };
 
-  window.Xray = {}
+  window.Xray = {};
 
-  if (!($)) { return }
+  if (!($)) { return; }
 
   Xray.init = (function () {
-    var is_mac
+    var is_mac;
     if (Xray.initialized) {
-      return
+      return;
     }
-    Xray.initialized = true
-    is_mac = navigator.platform.toUpperCase().indexOf('MAC') !== -1
+    Xray.initialized = true;
+    is_mac = navigator.platform.toUpperCase().indexOf('MAC') !== -1;
     $(document).keydown(function (e) {
       if ((is_mac && e.metaKey || !is_mac && e.ctrlKey) && e.shiftKey && e.keyCode === 88) {
         if (Xray.isShowing) {
-          Xray.hide()
+          Xray.hide();
         } else {
-          Xray.show()
+          Xray.show();
         }
       }
       if (Xray.isShowing && e.keyCode === 27) {
-        return Xray.hide()
+        return Xray.hide();
       }
-    })
+    });
     return $(function () {
-      new Xray.Overlay
-      Xray.findTemplates()
-      return typeof console !== 'undefined' && console !== null ? console.log('Ready to Xray. Press ' + (is_mac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.') : void 0
-    })
-  })()
+      new Xray.Overlay;
+      Xray.findTemplates();
+      return typeof console !== 'undefined' && console !== null ? console.log('Ready to Xray. Press ' + (is_mac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.') : void 0;
+    });
+  })();
 
   Xray.specimens = function () {
-    return Xray.ViewSpecimen.all.concat(Xray.TemplateSpecimen.all)
-  }
+    return Xray.ViewSpecimen.all.concat(Xray.TemplateSpecimen.all);
+  };
 
   Xray.constructorInfo = function (constructor) {
-    var func, info, ref
+    var func, info, ref;
     if (window.XrayPaths) {
-      ref = window.XrayPaths
+      ref = window.XrayPaths;
       for (info in ref) {
-        if (!hasProp.call(ref, info)) continue
-        func = ref[info]
+        if (!hasProp.call(ref, info)) continue;
+        func = ref[info];
         if (func === constructor) {
-          return JSON.parse(info)
+          return JSON.parse(info);
         }
       }
     }
-    return null
-  }
+    return null;
+  };
 
   Xray.findTemplates = function () {
     return util.bm('findTemplates', function () {
-      var $templateContents, _, comment, comments, el, id, path
+      var $templateContents, _, comment, comments, el, id, path;
       comments = $('*:not(iframe,script)').contents().filter(function () {
-        return this.nodeType === 8 && this.data.startsWith('XRAY START')
-      })
+        return this.nodeType === 8 && this.data.startsWith('XRAY START');
+      });
       comments.each(function (_, comment) {
-        var ref
-        ref = comment.data.match(/^XRAY START (\d+) (.*)$/)
-        if (!ref) return
-        _ = ref[0], id = ref[1], path = ref[2]
-        $templateContents = new jQuery
-        el = comment.nextSibling
+        var ref;
+        ref = comment.data.match(/^XRAY START (\d+) (.*)$/);
+        if (!ref) return;
+        _ = ref[0], id = ref[1], path = ref[2];
+        $templateContents = new jQuery;
+        el = comment.nextSibling;
         while (!(!el || (el.nodeType === 8 && el.data === ('XRAY END ' + id)))) {
           if (el.nodeType === 1 && el.tagName !== 'SCRIPT') {
-            $templateContents.push(el)
+            $templateContents.push(el);
           }
-          el = el.nextSibling
+          el = el.nextSibling;
         }
         if ((el != null ? el.nodeType : void 0) === 8) {
-          el.parentNode.removeChild(el)
+          el.parentNode.removeChild(el);
         }
-        comment.parentNode.removeChild(comment)
+        comment.parentNode.removeChild(comment);
         Xray.TemplateSpecimen.add($templateContents, {
           name: path.split('/').slice(-1)[0],
           path: path
-        })
-      })
-    })
-  }
+        });
+      });
+    });
+  };
 
   Xray.open = function (path) {
     return $.ajax({
       url: '/_xray/open?path=' + encodeURIComponent(path)
-    })
-  }
+    });
+  };
 
   Xray.show = function (type) {
     if (type == null) {
-      type = null
+      type = null;
     }
-    return Xray.Overlay.instance().show(type)
-  }
+    return Xray.Overlay.instance().show(type);
+  };
 
   Xray.hide = function () {
-    return Xray.Overlay.instance().hide()
-  }
+    return Xray.Overlay.instance().hide();
+  };
 
   Xray.toggleSettings = function () {
-    return Xray.Overlay.instance().settings.toggle()
-  }
+    return Xray.Overlay.instance().settings.toggle();
+  };
 
   Xray.Specimen = (function () {
     Specimen.add = function (el, info) {
       if (info == null) {
-        info = {}
+        info = {};
       }
-      return this.all.push(new this(el, info))
-    }
+      return this.all.push(new this(el, info));
+    };
 
     Specimen.remove = function (el) {
-      var ref
-      return (ref = this.find(el)) != null ? ref.remove() : void 0
-    }
+      var ref;
+      return (ref = this.find(el)) != null ? ref.remove() : void 0;
+    };
 
     Specimen.find = function (el) {
-      var i, len, ref, specimen
+      var i, len, ref, specimen;
       if (el instanceof jQuery) {
-        el = el[0]
+        el = el[0];
       }
-      ref = this.all
+      ref = this.all;
       for (i = 0, len = ref.length; i < len; i++) {
-        specimen = ref[i]
+        specimen = ref[i];
         if (specimen.el === el) {
-          return specimen
+          return specimen;
         }
       }
-      return null
-    }
+      return null;
+    };
 
     Specimen.reset = function () {
-      return this.all = []
-    }
+      return this.all = [];
+    };
 
     function Specimen (contents, info) {
       if (info == null) {
-        info = {}
+        info = {};
       }
-      this.makeLabel = this.makeLabel.bind(this)
-      this.el = contents instanceof jQuery ? contents[0] : contents
-      this.$contents = $(contents)
-      this.name = info.name
-      this.path = info.path
+      this.makeLabel = this.makeLabel.bind(this);
+      this.el = contents instanceof jQuery ? contents[0] : contents;
+      this.$contents = $(contents);
+      this.name = info.name;
+      this.path = info.path;
     }
 
     Specimen.prototype.remove = function () {
-      var idx
-      idx = this.constructor.all.indexOf(this)
+      var idx;
+      idx = this.constructor.all.indexOf(this);
       if (idx !== -1) {
-        return this.constructor.all.splice(idx, 1)
+        return this.constructor.all.splice(idx, 1);
       }
-    }
+    };
 
     Specimen.prototype.isVisible = function () {
-      return this.$contents.length && this.$contents.is(':visible')
-    }
+      return this.$contents.length && this.$contents.is(':visible');
+    };
 
     Specimen.prototype.makeBox = function () {
-      this.bounds = util.computeBoundingBox(this.$contents)
-      this.$box = $('<div class=\'xray-specimen ' + this.constructor.name + '\'>').css(this.bounds).attr('title', this.path)
+      this.bounds = util.computeBoundingBox(this.$contents);
+      this.$box = $('<div class=\'xray-specimen ' + this.constructor.name + '\'>').css(this.bounds).attr('title', this.path);
       if (this.$contents.css('position') === 'fixed') {
         this.$box.css({
           position: 'fixed',
           top: this.$contents.css('top'),
           left: this.$contents.css('left')
-        })
+        });
       }
       this.$box.click((function (_this) {
         return function () {
-          return Xray.open(_this.path)
-        }
-      })(this))
-      return this.$box.append(this.makeLabel)
-    }
+          return Xray.open(_this.path);
+        };
+      })(this));
+      return this.$box.append(this.makeLabel);
+    };
 
     Specimen.prototype.makeLabel = function () {
-      return $('<div class=\'xray-specimen-handle ' + this.constructor.name + '\'>').append(this.name)
-    }
+      return $('<div class=\'xray-specimen-handle ' + this.constructor.name + '\'>').append(this.name);
+    };
 
-    return Specimen
+    return Specimen;
 
-  })()
+  })();
 
   Xray.ViewSpecimen = (function (superClass) {
-    extend(ViewSpecimen, superClass)
+    extend(ViewSpecimen, superClass);
 
     function ViewSpecimen () {
-      return ViewSpecimen.__super__.constructor.apply(this, arguments)
+      return ViewSpecimen.__super__.constructor.apply(this, arguments);
     }
 
-    ViewSpecimen.all = []
+    ViewSpecimen.all = [];
 
-    return ViewSpecimen
+    return ViewSpecimen;
 
-  })(Xray.Specimen)
+  })(Xray.Specimen);
 
   Xray.TemplateSpecimen = (function (superClass) {
-    extend(TemplateSpecimen, superClass)
+    extend(TemplateSpecimen, superClass);
 
     function TemplateSpecimen () {
-      return TemplateSpecimen.__super__.constructor.apply(this, arguments)
+      return TemplateSpecimen.__super__.constructor.apply(this, arguments);
     }
 
-    TemplateSpecimen.all = []
+    TemplateSpecimen.all = [];
 
-    return TemplateSpecimen
+    return TemplateSpecimen;
 
-  })(Xray.Specimen)
+  })(Xray.Specimen);
 
   Xray.Overlay = (function () {
     Overlay.instance = function () {
-      return this.singletonInstance || (this.singletonInstance = new this)
-    }
+      return this.singletonInstance || (this.singletonInstance = new this);
+    };
 
     function Overlay () {
-      Xray.Overlay.singletonInstance = this
-      this.bar = new Xray.Bar('#xray-bar')
-      this.settings = new Xray.Settings('#xray-settings')
-      this.shownBoxes = []
-      this.$overlay = $('<div id="xray-overlay">')
+      Xray.Overlay.singletonInstance = this;
+      this.bar = new Xray.Bar('#xray-bar');
+      this.settings = new Xray.Settings('#xray-settings');
+      this.shownBoxes = [];
+      this.$overlay = $('<div id="xray-overlay">');
       this.$overlay.click((function (_this) {
         return function () {
-          return _this.hide()
-        }
-      })(this))
+          return _this.hide();
+        };
+      })(this));
     }
 
     Overlay.prototype.show = function (type) {
       if (type == null) {
-        type = null
+        type = null;
       }
-      this.reset()
-      Xray.isShowing = true
+      this.reset();
+      Xray.isShowing = true;
       return util.bm('show', (function (_this) {
         return function () {
-          var element, i, len, results, specimens
-          _this.bar.$el().find('#xray-bar-togglers .xray-bar-btn').removeClass('active')
+          var element, i, len, results, specimens;
+          _this.bar.$el().find('#xray-bar-togglers .xray-bar-btn').removeClass('active');
           if (!_this.$overlay.is(':visible')) {
-            $('body').append(_this.$overlay)
-            _this.bar.show()
+            $('body').append(_this.$overlay);
+            _this.bar.show();
           }
           switch (type) {
             case 'templates':
-              Xray.findTemplates()
-              specimens = Xray.TemplateSpecimen.all
-              _this.bar.$el().find('.xray-bar-templates-toggler').addClass('active')
-              break
+              Xray.findTemplates();
+              specimens = Xray.TemplateSpecimen.all;
+              _this.bar.$el().find('.xray-bar-templates-toggler').addClass('active');
+              break;
             case 'views':
-              specimens = Xray.ViewSpecimen.all
-              _this.bar.$el().find('.xray-bar-views-toggler').addClass('active')
-              break
+              specimens = Xray.ViewSpecimen.all;
+              _this.bar.$el().find('.xray-bar-views-toggler').addClass('active');
+              break;
             default:
-              Xray.findTemplates()
-              specimens = Xray.specimens()
-              _this.bar.$el().find('.xray-bar-all-toggler').addClass('active')
+              Xray.findTemplates();
+              specimens = Xray.specimens();
+              _this.bar.$el().find('.xray-bar-all-toggler').addClass('active');
           }
-          results = []
+          results = [];
           for (i = 0, len = specimens.length; i < len; i++) {
-            element = specimens[i]
+            element = specimens[i];
             if (!element.isVisible()) {
-              continue
+              continue;
             }
-            element.makeBox()
+            element.makeBox();
             element.$box.css({
               zIndex: Math.ceil(MAX_ZINDEX * 0.9 + element.bounds.top + element.bounds.left)
-            })
-            _this.shownBoxes.push(element.$box)
-            results.push($('body').append(element.$box))
+            });
+            _this.shownBoxes.push(element.$box);
+            results.push($('body').append(element.$box));
           }
-          return results
-        }
-      })(this))
-    }
+          return results;
+        };
+      })(this));
+    };
 
     Overlay.prototype.reset = function () {
-      var $box, i, len, ref
-      ref = this.shownBoxes
+      var $box, i, len, ref;
+      ref = this.shownBoxes;
       for (i = 0, len = ref.length; i < len; i++) {
-        $box = ref[i]
-        $box.remove()
+        $box = ref[i];
+        $box.remove();
       }
-      return this.shownBoxes = []
-    }
+      return this.shownBoxes = [];
+    };
 
     Overlay.prototype.hide = function () {
-      Xray.isShowing = false
-      this.$overlay.detach()
-      this.reset()
-      return this.bar.hide()
-    }
+      Xray.isShowing = false;
+      this.$overlay.detach();
+      this.reset();
+      return this.bar.hide();
+    };
 
-    return Overlay
+    return Overlay;
 
-  })()
+  })();
 
   Xray.Bar = (function () {
     function Bar (el) {
-      this.el = el
+      this.el = el;
     }
 
     Bar.prototype.$el = function () {
       if ((this.$el_memo != null) && $.contains(window.document, this.$el_memo[0])) {
-        return this.$el_memo
+        return this.$el_memo;
       }
-      this.$el_memo = $(this.el)
+      this.$el_memo = $(this.el);
       this.$el_memo.css({
         zIndex: MAX_ZINDEX
-      })
+      });
 
-      var $controllerBtns = this.$el_memo.find('#xray-bar-controller-path .xray-bar-btn')
-      var $allToggler = this.$el_memo.find('.xray-bar-all-toggler')
-      var $templatesToggler = this.$el_memo.find('.xray-bar-templates-toggler')
-      var $viewsToggler = this.$el_memo.find('.xray-bar-views-toggler')
-      var $settingsBtn = this.$el_memo.find('.xray-bar-settings-btn')
+      var $controllerBtns = this.$el_memo.find('#xray-bar-controller-path .xray-bar-btn');
+      var $allToggler = this.$el_memo.find('.xray-bar-all-toggler');
+      var $templatesToggler = this.$el_memo.find('.xray-bar-templates-toggler');
+      var $viewsToggler = this.$el_memo.find('.xray-bar-views-toggler');
+      var $settingsBtn = this.$el_memo.find('.xray-bar-settings-btn');
 
       $controllerBtns.on('click', function () {
-        return Xray.open($(this).attr('data-path'))
-      })
+        return Xray.open($(this).attr('data-path'));
+      });
       $allToggler.on('click', function () {
-        return Xray.show()
-      })
+        return Xray.show();
+      });
       $templatesToggler.on('click', function () {
-        return Xray.show('templates')
-      })
+        return Xray.show('templates');
+      });
       $viewsToggler.on('click', function () {
-        return Xray.show('views')
-      })
+        return Xray.show('views');
+      });
       $settingsBtn.on('click', function () {
-        return Xray.toggleSettings()
-      })
+        return Xray.toggleSettings();
+      });
 
-      return this.$el_memo
-    }
+      return this.$el_memo;
+    };
 
     Bar.prototype.show = function () {
-      this.$el().show()
-      this.originalPadding = parseInt($('html').css('padding-bottom'))
+      this.$el().show();
+      this.originalPadding = parseInt($('html').css('padding-bottom'));
       if (this.originalPadding < 40) {
         return $('html').css({
           paddingBottom: 40
-        })
+        });
       }
-    }
+    };
 
     Bar.prototype.hide = function () {
-      this.$el().hide()
+      this.$el().hide();
       return $('html').css({
         paddingBottom: this.originalPadding
-      })
-    }
+      });
+    };
 
-    return Bar
+    return Bar;
 
-  })()
+  })();
 
   Xray.Settings = (function () {
     function Settings (el) {
-      this.displayUpdateMsg = this.displayUpdateMsg.bind(this)
-      this.save = this.save.bind(this)
-      this.toggle = this.toggle.bind(this)
-      this.el = el
+      this.displayUpdateMsg = this.displayUpdateMsg.bind(this);
+      this.save = this.save.bind(this);
+      this.toggle = this.toggle.bind(this);
+      this.el = el;
     }
 
     Settings.prototype.$el = function () {
       if ((this.$el_memo != null) && $.contains(window.document, this.$el_memo[0])) {
-        return this.$el_memo
+        return this.$el_memo;
       }
-      this.$el_memo = $(this.el)
-      this.$el_memo.find('form').submit(this.save)
-      return this.$el_memo
-    }
+      this.$el_memo = $(this.el);
+      this.$el_memo.find('form').submit(this.save);
+      return this.$el_memo;
+    };
 
     Settings.prototype.toggle = function () {
-      return this.$el().toggle()
-    }
+      return this.$el().toggle();
+    };
 
     Settings.prototype.save = function (e) {
-      var editor
-      e.preventDefault()
-      editor = this.$el().find('#xray-editor-input').val()
+      var editor;
+      e.preventDefault();
+      editor = this.$el().find('#xray-editor-input').val();
       return $.ajax({
         url: '/_xray/config',
         type: 'POST',
@@ -402,75 +404,75 @@
         },
         success: (function (_this) {
           return function () {
-            return _this.displayUpdateMsg(true)
-          }
+            return _this.displayUpdateMsg(true);
+          };
         })(this),
         error: (function (_this) {
           return function () {
-            return _this.displayUpdateMsg(false)
-          }
+            return _this.displayUpdateMsg(false);
+          };
         })(this)
-      })
-    }
+      });
+    };
 
     Settings.prototype.displayUpdateMsg = function (success) {
-      var $msg
+      var $msg;
       if (success) {
-        $msg = $('<span class=\'xray-settings-success xray-settings-update-msg\'>Success!</span>')
+        $msg = $('<span class=\'xray-settings-success xray-settings-update-msg\'>Success!</span>');
       } else {
-        $msg = $('<span class=\'xray-settings-error xray-settings-update-msg\'>Uh oh, something went wrong!</span>')
+        $msg = $('<span class=\'xray-settings-error xray-settings-update-msg\'>Uh oh, something went wrong!</span>');
       }
-      this.$el().append($msg)
+      this.$el().append($msg);
       return $msg.delay(2000).fadeOut(500, (function (_this) {
         return function () {
-          $msg.remove()
-          return _this.toggle()
-        }
-      })(this))
-    }
+          $msg.remove();
+          return _this.toggle();
+        };
+      })(this));
+    };
 
-    return Settings
+    return Settings;
 
-  })()
+  })();
 
   util = {
     bm: function (name, fn) {
-      var result, time
-      time = new Date
-      result = fn()
-      return result
+      var result, time;
+      time = new Date;
+      result = fn();
+      return result;
     },
     computeBoundingBox: function ($contents) {
-      var $el, boxFrame, el, frame, i, len
+      var $el, boxFrame, el, frame, i, len;
       if ($contents.length === 1 && $contents.height() <= 0) {
-        return util.computeBoundingBox($contents.children())
+        return util.computeBoundingBox($contents.children());
       }
       boxFrame = {
         top: Number.POSITIVE_INFINITY,
         left: Number.POSITIVE_INFINITY,
         right: Number.NEGATIVE_INFINITY,
         bottom: Number.NEGATIVE_INFINITY
-      }
+      };
       for (i = 0, len = $contents.length; i < len; i++) {
-        el = $contents[i]
-        $el = $(el)
+        el = $contents[i];
+        $el = $(el);
         if (!$el.is(':visible')) {
-          continue
+          continue;
         }
-        frame = $el.offset()
-        frame.right = frame.left + $el.outerWidth()
-        frame.bottom = frame.top + $el.outerHeight()
+        frame = $el.offset();
+        frame.right = frame.left + $el.outerWidth();
+        frame.bottom = frame.top + $el.outerHeight();
         if (frame.top < boxFrame.top) {
-          boxFrame.top = frame.top
+          boxFrame.top = frame.top;
         }
         if (frame.left < boxFrame.left) {
-          boxFrame.left = frame.left
+          boxFrame.left = frame.left;
         }
         if (frame.right > boxFrame.right) {
-          boxFrame.right = frame.right
+          boxFrame.right = frame.right;
         }
         if (frame.bottom > boxFrame.bottom) {
-          boxFrame.bottom = frame.bottom
+          boxFrame.bottom = frame.bottom;
         }
       }
       return {
@@ -478,8 +480,8 @@
         top: boxFrame.top,
         width: boxFrame.right - boxFrame.left,
         height: boxFrame.bottom - boxFrame.top
-      }
+      };
     }
-  }
+  };
 
-}).call(this)
+}).call(this);
