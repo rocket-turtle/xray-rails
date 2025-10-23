@@ -3,11 +3,9 @@
 
   const $ = window.jQuery;
   const MAX_ZINDEX = 2147483647;
-  const hasProp = Object.prototype.hasOwnProperty;
 
   let util;
-
-  window.Xray = {};
+  let Xray = {};
 
   if (!($)) { return; }
 
@@ -21,13 +19,13 @@
     $(document).keydown((e) => {
       if ((is_mac && e.metaKey || !is_mac && e.ctrlKey) && e.shiftKey && e.keyCode === 88) {
         if (Xray.isShowing) {
-          Xray.hide();
+          XrayOverlay.instance().hide();
         } else {
-          Xray.show();
+          XrayOverlay.instance().show();
         }
       }
       if (Xray.isShowing && e.keyCode === 27) {
-        return Xray.hide();
+        XrayOverlay.instance().hide();
       }
     });
     return $(() => {
@@ -36,21 +34,6 @@
       return typeof console !== 'undefined' && console !== null ? console.log('Ready to Xray. Press ' + (is_mac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.') : void 0;
     });
   })();
-
-  Xray.constructorInfo = function (constructor) {
-    let func, info, ref;
-    if (window.XrayPaths) {
-      ref = window.XrayPaths;
-      for (info in ref) {
-        if (!hasProp.call(ref, info)) continue;
-        func = ref[info];
-        if (func === constructor) {
-          return JSON.parse(info);
-        }
-      }
-    }
-    return null;
-  };
 
   Xray.findTemplates = function () {
     let $templateContents, _, comment, comments, el, id, path;
@@ -80,24 +63,6 @@
         path: path
       });
     });
-  };
-
-  Xray.open = function (path) {
-    return $.ajax({
-      url: '/_xray/open?path=' + encodeURIComponent(path)
-    });
-  };
-
-  Xray.show = function () {
-    return XrayOverlay.instance().show();
-  };
-
-  Xray.hide = function () {
-    return XrayOverlay.instance().hide();
-  };
-
-  Xray.toggleSettings = function () {
-    return XrayOverlay.instance().settings.toggle();
   };
 
   Xray.Specimen = (function () {
@@ -181,7 +146,7 @@
         box.style.left = style.left;
       }
 
-      box.addEventListener('click', () => { Xray.open(this.path); });
+      box.addEventListener('click', () => { $.ajax({ url: '/_xray/open?path=' + encodeURIComponent(this.path) }); });
       return box;
     };
 
@@ -266,13 +231,15 @@
       $controllerBtns.forEach(btn => {
         btn.addEventListener('click', () => {
           const path = btn.getAttribute('data-path');
-          if (path) Xray.open(path);
+          if (path) {
+            $.ajax({ url: '/_xray/open?path=' + encodeURIComponent(path) });
+          }
         });
       });
 
       const $settingsBtn = this.$el_memo.querySelector('.xray-bar-settings-btn');
       if ($settingsBtn) {
-        $settingsBtn.addEventListener('click', () => Xray.toggleSettings());
+        $settingsBtn.addEventListener('click', () => XrayOverlay.instance().settings.toggle());
       }
 
       return this.$el_memo;
