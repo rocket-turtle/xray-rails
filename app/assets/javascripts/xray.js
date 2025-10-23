@@ -31,7 +31,7 @@
       }
     });
     return $(() => {
-      new Xray.Overlay();
+      new XrayOverlay();
       Xray.findTemplates();
       return typeof console !== 'undefined' && console !== null ? console.log('Ready to Xray. Press ' + (is_mac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.') : void 0;
     });
@@ -89,15 +89,15 @@
   };
 
   Xray.show = function () {
-    return Xray.Overlay.instance().show();
+    return XrayOverlay.instance().show();
   };
 
   Xray.hide = function () {
-    return Xray.Overlay.instance().hide();
+    return XrayOverlay.instance().hide();
   };
 
   Xray.toggleSettings = function () {
-    return Xray.Overlay.instance().settings.toggle();
+    return XrayOverlay.instance().settings.toggle();
   };
 
   Xray.Specimen = (function () {
@@ -138,7 +138,6 @@
       if (info == null) {
         info = {};
       }
-      this.makeLabel = this.makeLabel.bind(this);
       this.el = contents instanceof jQuery ? contents[0] : contents;
       this.$contents = $(contents);
       this.name = info.name;
@@ -159,96 +158,90 @@
 
     Specimen.prototype.makeBox = function () {
       this.bounds = util.computeBoundingBox(this.$contents);
-      this.$box = $('<div class="xray-specimen">').css(this.bounds).attr('title', this.path);
-      if (this.$contents.css('position') === 'fixed') {
-        this.$box.css({
-          position: 'fixed',
-          top: this.$contents.css('top'),
-          left: this.$contents.css('left')
-        });
-      }
-      this.$box.click((( _this ) => {
-        return () => {
-          return Xray.open(_this.path);
-        };
-      })(this));
-      return this.$box.append(this.makeLabel());
-    };
 
-    Specimen.prototype.makeLabel = function () {
-      return $('<div class="xray-specimen-handle">').append(this.name);
+      const box = document.createElement('div');
+      box.className = 'xray-specimen';
+      box.title = this.path;
+
+      const label = document.createElement('div');
+      label.className = 'xray-specimen-handle';
+      label.textContent = this.name;
+      box.appendChild(label);
+
+      box.style.left = isFinite(this.bounds.left) ? `${this.bounds.left}px` : '0px';
+      box.style.top = isFinite(this.bounds.top) ? `${this.bounds.top}px` : '0px';
+      box.style.width = isFinite(this.bounds.width) ? `${this.bounds.width}px` : '0px';
+      box.style.height = isFinite(this.bounds.height) ? `${this.bounds.height}px` : '0px';
+
+      const firstContent = this.$contents[0];
+      if (firstContent && window.getComputedStyle(firstContent).position === 'fixed') {
+        const style = window.getComputedStyle(firstContent);
+        box.style.position = 'fixed';
+        box.style.top = style.top;
+        box.style.left = style.left;
+      }
+
+      box.addEventListener('click', () => { Xray.open(this.path); });
+      return box;
     };
 
     return Specimen;
   })();
 
-  Xray.Overlay = (function () {
-    Overlay.instance = function () {
-      return this.singletonInstance || (this.singletonInstance = new this);
+  class XrayOverlay {
+    static singletonInstance = null;
+
+    static instance = () => {
+      return this.singletonInstance || (this.singletonInstance = new XrayOverlay());
     };
 
-    function Overlay () {
-      Xray.Overlay.singletonInstance = this;
-      this.bar = new XrayBar('#xray-bar');
-      this.settings = new XraySettings('#xray-settings');
-      this.shownBoxes = [];
-      this.$overlay = $('<div id="xray-overlay">');
-      this.$overlay.click((() => {
-        return () => { return this.hide(); };
-      })());
+    bar = new XrayBar('#xray-bar');
+    settings = new XraySettings('#xray-settings');
+    shownBoxes = [];
+    $overlay = document.createElement('div');
+
+    constructor() {
+      XrayOverlay.singletonInstance = this;
+      this.$overlay.id = 'xray-overlay';
+      this.$overlay.addEventListener('click', this.hide);
     }
 
-    Overlay.prototype.show = function (type) {
-      if (type == null) {
-        type = null;
-      }
+    show = () => {
       this.reset();
       Xray.isShowing = true;
-      let element, i, len, results, specimens;
-      if (!this.$overlay.is(':visible')) {
-        $('body').append(this.$overlay);
+
+      if (!this.$overlay.isConnected) {
+        document.body.appendChild(this.$overlay);
         this.bar.show();
       }
 
       Xray.findTemplates();
-      specimens = Xray.Specimen.all;
+      const specimens = Xray.Specimen.all;
 
-      results = [];
-      for (i = 0, len = specimens.length; i < len; i++) {
-        element = specimens[i];
-        if (!element.isVisible()) {
-          continue;
-        }
-        element.makeBox();
-        element.$box.css({
-          zIndex: Math.ceil(MAX_ZINDEX * 0.9 + element.bounds.top + element.bounds.left)
-        });
-        this.shownBoxes.push(element.$box);
-        results.push($('body').append(element.$box));
-      }
-      return results;
+      specimens.forEach(element => {
+        if (!element.isVisible()) return;
+
+        const box = element.makeBox();
+        box.style.zIndex = Math.ceil(MAX_ZINDEX * 0.9 + element.bounds.top + element.bounds.left);
+        this.shownBoxes.push(box);
+        document.body.appendChild(box);
+      });
     };
 
-    Overlay.prototype.reset = function () {
-      let $box, i, len, ref;
-      ref = this.shownBoxes;
-      for (i = 0, len = ref.length; i < len; i++) {
-        $box = ref[i];
-        $box.remove();
-      }
-      return this.shownBoxes = [];
+    reset = () => {
+      this.shownBoxes.forEach(box => box.remove());
+      this.shownBoxes = [];
     };
 
-    Overlay.prototype.hide = function () {
+    hide = () => {
       Xray.isShowing = false;
-      this.$overlay.detach();
+      if (this.$overlay.isConnected) {
+        this.$overlay.remove();
+      }
       this.reset();
-      return this.bar.hide();
+      this.bar.hide();
     };
-
-    return Overlay;
-
-  })();
+  }
 
   class XrayBar {
     bar;
@@ -396,6 +389,7 @@
         const frame = $el.offset();
         frame.right = frame.left + $el.outerWidth();
         frame.bottom = frame.top + $el.outerHeight();
+
         if (frame.top < boxFrame.top) boxFrame.top = frame.top;
         if (frame.left < boxFrame.left) boxFrame.left = frame.left;
         if (frame.right > boxFrame.right) boxFrame.right = frame.right;
