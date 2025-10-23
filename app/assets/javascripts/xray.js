@@ -189,7 +189,7 @@
 
     function Overlay () {
       Xray.Overlay.singletonInstance = this;
-      this.bar = new Xray.Bar('#xray-bar');
+      this.bar = new XrayBar('#xray-bar');
       this.settings = new Xray.Settings('#xray-settings');
       this.shownBoxes = [];
       this.$overlay = $('<div id="xray-overlay">');
@@ -250,49 +250,67 @@
 
   })();
 
-  Xray.Bar = (function () {
-    function Bar (el) {
-      this.el = el;
+  class XrayBar {
+    bar;
+    $el_memo = null;
+    originalPadding = null;
+
+    constructor(bar) {
+      this.bar = bar;
     }
 
-    Bar.prototype.$el = function () {
-      if ((this.$el_memo != null) && $.contains(window.document, this.$el_memo[0])) {
+    $el = () => {
+      if (this.$el_memo && document.body.contains(this.$el_memo)) {
         return this.$el_memo;
       }
-      this.$el_memo = $(this.el);
-      this.$el_memo.css({ zIndex: MAX_ZINDEX });
 
-      const $controllerBtns = this.$el_memo.find('#xray-bar-controller-path .xray-bar-btn');
-      const $settingsBtn = this.$el_memo.find('.xray-bar-settings-btn');
+      this.$el_memo = document.querySelector(this.bar);
+      if (!this.$el_memo) return null;
 
-      $controllerBtns.on('click', function () {
-        return Xray.open($(this).attr('data-path'));
+      this.$el_memo.style.zIndex = MAX_ZINDEX;
+
+      const $controllerBtns = this.$el_memo.querySelectorAll('#xray-bar-controller-path .xray-bar-btn');
+      $controllerBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          const path = btn.getAttribute('data-path');
+          if (path) Xray.open(path);
+        });
       });
-      $settingsBtn.on('click', () => Xray.toggleSettings());
+
+      const $settingsBtn = this.$el_memo.querySelector('.xray-bar-settings-btn');
+      if ($settingsBtn) {
+        $settingsBtn.addEventListener('click', () => Xray.toggleSettings());
+      }
 
       return this.$el_memo;
     };
 
-    Bar.prototype.show = function () {
-      this.$el().show();
-      this.originalPadding = parseInt($('html').css('padding-bottom'));
+    show = () => {
+      const el = this.$el();
+      if (!el) return;
+
+      el.style.display = 'block';
+
+      const html = document.documentElement;
+      const computedStyle = window.getComputedStyle(html);
+      const padding = parseInt(computedStyle.paddingBottom, 10);
+      this.originalPadding = isNaN(padding) ? 0 : padding;
+
       if (this.originalPadding < 40) {
-        return $('html').css({
-          paddingBottom: 40
-        });
+        html.style.paddingBottom = '40px';
       }
     };
 
-    Bar.prototype.hide = function () {
-      this.$el().hide();
-      return $('html').css({
-        paddingBottom: this.originalPadding
-      });
+    hide = () => {
+      const el = this.$el();
+      if (!el) return;
+
+      el.style.display = 'none';
+      if (this.originalPadding !== null) {
+        document.documentElement.style.paddingBottom = `${this.originalPadding}px`;
+      }
     };
-
-    return Bar;
-
-  })();
+  }
 
   Xray.Settings = (function () {
     function Settings (el) {
