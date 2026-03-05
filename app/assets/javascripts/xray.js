@@ -45,31 +45,40 @@
   })();
 
   Xray.findTemplates = function () {
-    let $templateContents, _, comment, comments, el, id, path;
-    comments = $('*:not(iframe,script)').contents().filter(function () {
-      return this.nodeType === 8 && this.data.startsWith('XRAY START');
+    const comments = [];
+    const elements = document.querySelectorAll('*:not(iframe,script)');
+    elements.forEach((element) => {
+      element.childNodes.forEach((node) => {
+        if (node.nodeType === Node.COMMENT_NODE && node.data.startsWith('XRAY START')) {
+          comments.push(node);
+        }
+      });
     });
-    comments.each((_, comment) => {
-      let ref;
-      ref = comment.data.match(/^XRAY START (\d+) (.*)$/);
+
+    comments.forEach((comment) => {
+      const ref = comment.data.match(/^XRAY START (\d+) (.*)$/);
       if (!ref) return;
-      _ = ref[0], id = ref[1], path = ref[2];
-      $templateContents = new jQuery;
-      el = comment.nextSibling;
-      while (!(!el || (el.nodeType === 8 && el.data === ('XRAY END ' + id)))) {
-        if (el.nodeType === 1 && el.tagName !== 'SCRIPT') {
-          $templateContents.push(el);
+
+      const id = ref[1];
+      const path = ref[2];
+      const templateContents = [];
+      let el = comment.nextSibling;
+
+      while (!(!el || (el.nodeType === Node.COMMENT_NODE && el.data === ('XRAY END ' + id)))) {
+        if (el.nodeType === Node.ELEMENT_NODE && el.tagName !== 'SCRIPT') {
+          templateContents.push(el);
         }
         el = el.nextSibling;
       }
-      if ((el != null ? el.nodeType : void 0) === 8) {
-        el.parentNode.removeChild(el);
-      }
-      comment.parentNode.removeChild(comment);
 
-      Xray.Specimen.add($templateContents, {
+      if (el != null && el.nodeType === Node.COMMENT_NODE) {
+        el.remove();
+      }
+      comment.remove();
+
+      Xray.Specimen.add(templateContents, {
         name: path.split('/').slice(-1)[0],
-        path: path
+        path
       });
     });
   };
