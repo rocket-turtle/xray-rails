@@ -81,23 +81,34 @@
     });
   };
 
+  const XRAY_START_COMMENT_REGEX = /^XRAY START (\d+) (.*)$/;
   const findTemplates = () => {
-    const comments = [];
-    const elements = document.querySelectorAll('*:not(iframe,script)');
-    elements.forEach((element) => {
-      element.childNodes.forEach((node) => {
-        if (node.nodeType === Node.COMMENT_NODE && node.data.startsWith('XRAY START')) {
-          comments.push(node);
-        }
-      });
-    });
+    const root = document.body || document.documentElement;
+    if (!root) return;
 
-    comments.forEach((comment) => {
-      const match = comment.data.match(/^XRAY START (\d+) (.*)$/);
-      if (!match) return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_COMMENT);
+    const startComments = [];
+    let commentNode = walker.nextNode();
 
-      const id = match[1];
-      const path = match[2];
+    while (commentNode) {
+      const inIgnoredContainer = commentNode.parentElement && commentNode.parentElement.closest('script, iframe');
+      if (inIgnoredContainer) {
+        commentNode = walker.nextNode();
+        continue;
+      }
+
+      const match = commentNode.data.match(XRAY_START_COMMENT_REGEX);
+      if (match) {
+        startComments.push({
+          comment: commentNode,
+          id: match[1],
+          path: match[2]
+        });
+      }
+      commentNode = walker.nextNode();
+    }
+
+    startComments.forEach(({ comment, id, path }) => {
       const templateContents = [];
       let currentNode = comment.nextSibling;
 
@@ -108,8 +119,9 @@
         currentNode = currentNode.nextSibling;
       }
 
-      if (currentNode != null && currentNode.nodeType === Node.COMMENT_NODE) {
-        currentNode.remove();
+      const endComment = currentNode && currentNode.nodeType === Node.COMMENT_NODE ? currentNode : null;
+      if (endComment) {
+        endComment.remove();
       }
       comment.remove();
 
