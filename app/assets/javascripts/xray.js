@@ -2,12 +2,10 @@
   'use strict';
 
   const $ = window.jQuery;
-  const MAX_ZINDEX = 2147483647;
-
-  let util;
-  let Xray = {};
-
   if (!($)) { return; }
+
+  const MAX_ZINDEX = 2147483647;
+  const Xray = {};
 
   Xray.init = (function () {
     let is_mac;
@@ -64,6 +62,38 @@
       });
     });
   };
+
+  Xray.computeBoundingBox = function ($contents) {
+    if ($contents.length === 1 && $contents.height() <= 0) {
+      return Xray.computeBoundingBox($contents.children());
+    }
+    const boxFrame = {
+      top: Number.POSITIVE_INFINITY,
+      left: Number.POSITIVE_INFINITY,
+      right: Number.NEGATIVE_INFINITY,
+      bottom: Number.NEGATIVE_INFINITY
+    };
+
+    const visibleElements = $contents.filter(':visible');
+    for (let i = 0; i < visibleElements.length; i++) {
+      const el = visibleElements[i];
+      const $el = $(el);
+      const frame = $el.offset();
+      frame.right = frame.left + $el.outerWidth();
+      frame.bottom = frame.top + $el.outerHeight();
+
+      if (frame.top < boxFrame.top) boxFrame.top = frame.top;
+      if (frame.left < boxFrame.left) boxFrame.left = frame.left;
+      if (frame.right > boxFrame.right) boxFrame.right = frame.right;
+      if (frame.bottom > boxFrame.bottom) boxFrame.bottom = frame.bottom;
+    }
+    return {
+      left: boxFrame.left,
+      top: boxFrame.top,
+      width: boxFrame.right - boxFrame.left,
+      height: boxFrame.bottom - boxFrame.top
+    };
+  }
 
   Xray.Specimen = (function () {
     Specimen.all = [];
@@ -122,7 +152,7 @@
     };
 
     Specimen.prototype.makeBox = function () {
-      this.bounds = util.computeBoundingBox(this.$contents);
+      this.bounds = Xray.computeBoundingBox(this.$contents);
 
       const box = document.createElement('div');
       box.className = 'xray-specimen';
@@ -336,38 +366,4 @@
       }, 3000);
     }
   }
-
-  util = {
-    computeBoundingBox: function ($contents) {
-      if ($contents.length === 1 && $contents.height() <= 0) {
-        return util.computeBoundingBox($contents.children());
-      }
-      const boxFrame = {
-        top: Number.POSITIVE_INFINITY,
-        left: Number.POSITIVE_INFINITY,
-        right: Number.NEGATIVE_INFINITY,
-        bottom: Number.NEGATIVE_INFINITY
-      };
-
-      const visibleElements = $contents.filter(':visible');
-      for (let i = 0; i < visibleElements.length; i++) {
-        const el = visibleElements[i];
-        const $el = $(el);
-        const frame = $el.offset();
-        frame.right = frame.left + $el.outerWidth();
-        frame.bottom = frame.top + $el.outerHeight();
-
-        if (frame.top < boxFrame.top) boxFrame.top = frame.top;
-        if (frame.left < boxFrame.left) boxFrame.left = frame.left;
-        if (frame.right > boxFrame.right) boxFrame.right = frame.right;
-        if (frame.bottom > boxFrame.bottom) boxFrame.bottom = frame.bottom;
-      }
-      return {
-        left: boxFrame.left,
-        top: boxFrame.top,
-        width: boxFrame.right - boxFrame.left,
-        height: boxFrame.bottom - boxFrame.top
-      };
-    }
-  };
 })();
