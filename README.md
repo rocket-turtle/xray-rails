@@ -1,9 +1,6 @@
 Xray-rails
 ==========
 
-[![Gem Version](https://badge.fury.io/rb/xray-rails.svg)](https://rubygems.org/gems/xray-rails)
-[![Build Status](https://travis-ci.org/brentd/xray-rails.svg?branch=master)](https://travis-ci.org/brentd/xray-rails)
-
 ### Reveal your UI's bones
 
 The dev tools available to web developers in modern browsers are great. Many of us can't remember what life was like before "Inspect Element". But what we see in the compiled output sent to our browser is often the wrong level of detail - what about visualizing the higher level components of your UI? Controllers, view templates, partials, JS templates, etc.

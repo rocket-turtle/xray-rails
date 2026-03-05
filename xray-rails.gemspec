@@ -25,9 +25,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'capybara'
   gem.add_development_dependency 'byebug'
 
-  unless ENV['CI'] == 'true'
-    gem.add_development_dependency 'selenium-webdriver'
-    gem.add_development_dependency 'puma'
-    gem.add_development_dependency 'webdrivers'
-  end
+  gem.add_development_dependency 'selenium-webdriver'
+  gem.add_development_dependency 'puma'
+  gem.add_development_dependency 'webdrivers'
 end
