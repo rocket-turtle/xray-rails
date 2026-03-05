@@ -10,7 +10,12 @@ lesser changes or bug fixes.
 
 ## [Unreleased][]
 
-* Your contribution here!
+* Remove jQuery dependency from `xray.js`; use native DOM APIs, `fetch`, and ES6 classes for overlay/bar/settings internals.
+* Remove CoffeeScript frontend source (`app/assets/javascripts/xray.js.coffee`) and keep a single JavaScript implementation.
+* Improve keyboard handling by switching to `KeyboardEvent.key`, extracting shortcut helpers, and refining macOS detection.
+* Improve request handling by centralizing Xray requests and treating non-2xx HTTP responses as failures.
+* Simplify template marker scanning/parsing logic and remove unused frontend code paths/utilities.
+* Remove Haml support in rendering/tests (including Haml dummy fixture and related branches).
 
 ## [0.3.2.3][] (2023-12-15)
 * update ruby 3.3
