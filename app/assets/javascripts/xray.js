@@ -6,6 +6,10 @@
 
   const MAX_ZINDEX = 2147483647;
   const Xray = {};
+  const openPath = (path) => fetch('/_xray/open?path=' + encodeURIComponent(path), {
+    method: 'GET',
+    credentials: 'same-origin'
+  });
 
   Xray.init = (function () {
     let is_mac;
@@ -144,7 +148,7 @@
         box.style.left = style.left;
       }
 
-      box.addEventListener('click', () => { $.ajax({ url: '/_xray/open?path=' + encodeURIComponent(this.path) }); });
+      box.addEventListener('click', () => { openPath(this.path); });
       return box;
     };
 
@@ -230,7 +234,7 @@
         btn.addEventListener('click', () => {
           const path = btn.getAttribute('data-path');
           if (path) {
-            $.ajax({ url: '/_xray/open?path=' + encodeURIComponent(path) });
+            openPath(path);
           }
         });
       });
