@@ -10,6 +10,13 @@
     method: 'GET',
     credentials: 'same-origin'
   });
+  const onReady = (callback) => {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', callback, { once: true });
+      return;
+    }
+    callback();
+  };
 
   Xray.init = (function () {
     let is_mac;
@@ -18,7 +25,7 @@
     }
     Xray.initialized = true;
     is_mac = navigator.platform.toUpperCase().indexOf('MAC') !== -1;
-    $(document).keydown((e) => {
+    document.addEventListener('keydown', (e) => {
       if ((is_mac && e.metaKey || !is_mac && e.ctrlKey) && e.shiftKey && e.keyCode === 88) {
         if (Xray.isShowing) {
           XrayOverlay.instance().hide();
@@ -30,7 +37,7 @@
         XrayOverlay.instance().hide();
       }
     });
-    return $(() => {
+    return onReady(() => {
       new XrayOverlay();
       Xray.findTemplates();
       return typeof console !== 'undefined' && console !== null ? console.log('Ready to Xray. Press ' + (is_mac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.') : void 0;
