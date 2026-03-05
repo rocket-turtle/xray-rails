@@ -105,30 +105,6 @@
       return this.all.push(new this(el, info));
     };
 
-    Specimen.remove = function (el) {
-      let ref;
-      return (ref = this.find(el)) != null ? ref.remove() : void 0;
-    };
-
-    Specimen.find = function (el) {
-      let i, len, ref, specimen;
-      if (el instanceof jQuery) {
-        el = el[0];
-      }
-      ref = this.all;
-      for (i = 0, len = ref.length; i < len; i++) {
-        specimen = ref[i];
-        if (specimen.el === el) {
-          return specimen;
-        }
-      }
-      return null;
-    };
-
-    Specimen.reset = function () {
-      return this.all = [];
-    };
-
     function Specimen (contents, info) {
       if (info == null) {
         info = {};
@@ -138,14 +114,6 @@
       this.name = info.name;
       this.path = info.path;
     }
-
-    Specimen.prototype.remove = function () {
-      let idx;
-      idx = this.constructor.all.indexOf(this);
-      if (idx !== -1) {
-        return this.constructor.all.splice(idx, 1);
-      }
-    };
 
     Specimen.prototype.isVisible = function () {
       return this.$contents.length && this.$contents.is(':visible');
