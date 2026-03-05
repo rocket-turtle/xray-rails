@@ -31,10 +31,10 @@ Then bundle and delete your cached assets:
 $ bundle && rm -rf tmp/cache/assets
 ```
 
-Insert Xray's script in your template as its own script tag.
+Render Xray's bar partial in your layout (for example right after `<body>`):
 
-```
-= javascript_include_tag 'xray', nonce: true if Rails.env.development?
+```erb
+<%= render partial: "/xray_bar" if Rails.env.development? %>
 ```
 
 Restart your app, visit it in your browser, and press **command+shift+x** (Mac) or **ctrl+shift+x** to reveal the overlay.
@@ -61,7 +61,7 @@ For something more complex, use the `$file` placeholder.
 ## How this works
 
 * At run time, HTML responses from Rails are wrapped with HTML comments containing filepath info.
-* A middleware inserts `xray.css` and the Xray bar into all successful HTML response bodies.
+* Rendering the `xray_bar` partial adds `xray.js`, `xray.css`, and the Xray UI bar.
 * When the overlay is shown, `xray.js` examines the inserted filepath info to build the overlay.
 
 ## Disabling Xray

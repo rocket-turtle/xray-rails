@@ -2,8 +2,8 @@ module Xray
   # This is the main point of integration with Rails. This engine hooks into
   # Sprockets and monkey patches ActionView in order to augment the app's JS
   # and HTML templates with filepath information that can be used by xray.js
-  # in the browser. It also hooks in a middleware responsible for injecting
-  # xray.js and the xray bar into the app's response bodies.
+  # in the browser. It also hooks in middleware for the /_xray/open and
+  # /_xray/config endpoints.
   class Engine < ::Rails::Engine
     initializer "xray.initialize" do |app|
       app.middleware.use Xray::Middleware

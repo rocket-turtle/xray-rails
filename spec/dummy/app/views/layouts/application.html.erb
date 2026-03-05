@@ -4,12 +4,11 @@
   <title>Xray</title>
   <%= stylesheet_link_tag    "application", media: "all" %>
   <%= javascript_include_tag "application", nonce: true %>
-  <%= javascript_include_tag "xray", nonce: true %>
   <%= csrf_meta_tags %>
   <%= csp_meta_tag %>
 </head>
 <body>
-
+<%= render partial: "/xray_bar" %>
 <%= yield %>
 
 </body>
