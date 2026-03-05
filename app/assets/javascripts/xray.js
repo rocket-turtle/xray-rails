@@ -84,7 +84,7 @@
       }
       comment.remove();
 
-      Xray.Specimen.add(templateContents, {
+      Specimen.add(templateContents, {
         name: path.split('/').slice(-1)[0],
         path
       });
@@ -127,31 +127,25 @@
     };
   };
 
-  Xray.Specimen = (function () {
-    Specimen.all = [];
+  class Specimen {
+    static all = [];
 
-    Specimen.add = function (contents, info) {
-      if (info == null) {
-        info = {};
-      }
+    static add(contents, info = {}) {
       return this.all.push(new this(contents, info));
-    };
+    }
 
-    function Specimen (contents, info) {
-      if (info == null) {
-        info = {};
-      }
+    constructor(contents, info = {}) {
       this.contents = toElementArray(contents);
       this.firstEl = this.contents[0] || null;
       this.name = info.name;
       this.path = info.path;
     }
 
-    Specimen.prototype.isVisible = function () {
+    isVisible() {
       return this.contents.length > 0 && this.contents.some((el) => isElementVisible(el));
-    };
+    }
 
-    Specimen.prototype.makeBox = function () {
+    makeBox() {
       this.bounds = computeBoundingBox(this.contents);
 
       const box = document.createElement('div');
@@ -178,10 +172,8 @@
 
       box.addEventListener('click', () => { requestOpenPath(this.path); });
       return box;
-    };
-
-    return Specimen;
-  })();
+    }
+  }
 
   class XrayOverlay {
     static singletonInstance = null;
@@ -211,7 +203,7 @@
       }
 
       Xray.findTemplates();
-      const specimens = Xray.Specimen.all;
+      const specimens = Specimen.all;
 
       specimens.forEach(element => {
         if (!element.isVisible()) return;
