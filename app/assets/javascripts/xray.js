@@ -1,9 +1,6 @@
 (function () {
   'use strict';
 
-  const $ = window.jQuery;
-  if (!($)) { return; }
-
   const MAX_ZINDEX = 2147483647;
   const Xray = {};
   const openPath = (path) => fetch('/_xray/open?path=' + encodeURIComponent(path), {
