@@ -17,6 +17,11 @@
     }
     callback();
   };
+  const toElementArray = (value) => {
+    if (!value) return [];
+    if (value instanceof Element) return [value];
+    return Array.from(value).filter((el) => el instanceof Element);
+  };
 
   Xray.init = (function () {
     let is_mac;
@@ -129,8 +134,9 @@
       if (info == null) {
         info = {};
       }
-      this.el = contents instanceof jQuery ? contents[0] : contents;
-      this.$contents = $(contents);
+      this.contents = toElementArray(contents);
+      this.el = this.contents[0] || null;
+      this.$contents = $(this.contents);
       this.name = info.name;
       this.path = info.path;
     }
