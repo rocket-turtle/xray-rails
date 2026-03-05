@@ -22,6 +22,12 @@
     if (value instanceof Element) return [value];
     return Array.from(value).filter((el) => el instanceof Element);
   };
+  const isElementVisible = (el) => {
+    if (!(el instanceof Element)) return false;
+    if (el.getClientRects().length === 0) return false;
+    const style = window.getComputedStyle(el);
+    return style.display !== 'none' && style.visibility !== 'hidden';
+  };
 
   Xray.init = (function () {
     let is_mac;
@@ -88,9 +94,10 @@
     });
   };
 
-  Xray.computeBoundingBox = function ($contents) {
-    if ($contents.length === 1 && $contents.height() <= 0) {
-      return Xray.computeBoundingBox($contents.children());
+  Xray.computeBoundingBox = function (contents) {
+    const elements = toElementArray(contents);
+    if (elements.length === 1 && elements[0].getBoundingClientRect().height <= 0) {
+      return Xray.computeBoundingBox(elements[0].children);
     }
     const boxFrame = {
       top: Number.POSITIVE_INFINITY,
@@ -99,13 +106,16 @@
       bottom: Number.NEGATIVE_INFINITY
     };
 
-    const visibleElements = $contents.filter(':visible');
-    for (let i = 0; i < visibleElements.length; i++) {
-      const el = visibleElements[i];
-      const $el = $(el);
-      const frame = $el.offset();
-      frame.right = frame.left + $el.outerWidth();
-      frame.bottom = frame.top + $el.outerHeight();
+    for (let i = 0; i < elements.length; i++) {
+      const el = elements[i];
+      if (!isElementVisible(el)) continue;
+      const rect = el.getBoundingClientRect();
+      const frame = {
+        top: rect.top + window.scrollY,
+        left: rect.left + window.scrollX,
+        right: rect.left + window.scrollX + rect.width,
+        bottom: rect.top + window.scrollY + rect.height
+      };
 
       if (frame.top < boxFrame.top) boxFrame.top = frame.top;
       if (frame.left < boxFrame.left) boxFrame.left = frame.left;
@@ -136,17 +146,16 @@
       }
       this.contents = toElementArray(contents);
       this.el = this.contents[0] || null;
-      this.$contents = $(this.contents);
       this.name = info.name;
       this.path = info.path;
     }
 
     Specimen.prototype.isVisible = function () {
-      return this.$contents.length && this.$contents.is(':visible');
+      return this.contents.length > 0 && this.contents.some((el) => isElementVisible(el));
     };
 
     Specimen.prototype.makeBox = function () {
-      this.bounds = Xray.computeBoundingBox(this.$contents);
+      this.bounds = Xray.computeBoundingBox(this.contents);
 
       const box = document.createElement('div');
       box.className = 'xray-specimen';
@@ -162,7 +171,7 @@
       box.style.width = isFinite(this.bounds.width) ? `${this.bounds.width}px` : '0px';
       box.style.height = isFinite(this.bounds.height) ? `${this.bounds.height}px` : '0px';
 
-      const firstContent = this.$contents[0];
+      const firstContent = this.contents[0];
       if (firstContent && window.getComputedStyle(firstContent).position === 'fixed') {
         const style = window.getComputedStyle(firstContent);
         box.style.position = 'fixed';
