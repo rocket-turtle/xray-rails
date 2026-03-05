@@ -33,32 +33,37 @@
     const style = window.getComputedStyle(el);
     return style.display !== 'none' && style.visibility !== 'hidden';
   };
+  const getOverlay = () => {
+    if (!Xray.overlay) {
+      Xray.overlay = new XrayOverlay();
+    }
+    return Xray.overlay;
+  };
 
-  Xray.init = (function () {
-    let isMac;
+  Xray.init = () => {
     if (Xray.initialized) {
       return;
     }
     Xray.initialized = true;
-    isMac = navigator.platform.toUpperCase().indexOf('MAC') !== -1;
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') !== -1;
     document.addEventListener('keydown', (e) => {
       if ((isMac && e.metaKey || !isMac && e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'x') {
         if (Xray.isShowing) {
-          XrayOverlay.instance().hide();
+          getOverlay().hide();
         } else {
-          XrayOverlay.instance().show();
+          getOverlay().show();
         }
       }
       if (Xray.isShowing && e.key === 'Escape') {
-        XrayOverlay.instance().hide();
+        getOverlay().hide();
       }
     });
-    return runWhenDomReady(() => {
-      new XrayOverlay();
+    runWhenDomReady(() => {
+      getOverlay();
       findTemplates();
       return typeof console !== 'undefined' && console !== null ? console.log('Ready to Xray. Press ' + (isMac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.') : void 0;
     });
-  })();
+  };
 
   const findTemplates = () => {
     const comments = [];
@@ -183,19 +188,12 @@
   }
 
   class XrayOverlay {
-    static singletonInstance = null;
-
-    static instance = () => {
-      return this.singletonInstance || (this.singletonInstance = new XrayOverlay());
-    };
-
-    bar = new XrayBar('#xray-bar');
+    bar = new XrayBar('#xray-bar', () => this.settings.toggle());
     settings = new XraySettings('#xray-settings');
     shownBoxes = [];
     overlayEl = document.createElement('div');
 
     constructor() {
-      XrayOverlay.singletonInstance = this;
       this.overlayEl.id = 'xray-overlay';
       this.overlayEl.addEventListener('click', this.hide);
     }
@@ -239,11 +237,13 @@
 
   class XrayBar {
     bar;
+    onSettingsToggle;
     cachedEl = null;
     originalPadding = null;
 
-    constructor(bar) {
+    constructor(bar, onSettingsToggle = null) {
       this.bar = bar;
+      this.onSettingsToggle = onSettingsToggle;
     }
 
     getBarEl = () => {
@@ -267,8 +267,8 @@
       });
 
       const settingsBtn = this.cachedEl.querySelector('.xray-bar-settings-btn');
-      if (settingsBtn) {
-        settingsBtn.addEventListener('click', () => XrayOverlay.instance().settings.toggle());
+      if (settingsBtn && this.onSettingsToggle) {
+        settingsBtn.addEventListener('click', this.onSettingsToggle);
       }
 
       return this.cachedEl;
@@ -361,4 +361,6 @@
       }, 3000);
     }
   }
+
+  Xray.init();
 })();
