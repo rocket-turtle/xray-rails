@@ -91,10 +91,10 @@
     });
   };
 
-  Xray.computeBoundingBox = function (contents) {
+  const computeBoundingBox = (contents) => {
     const elements = toElementArray(contents);
     if (elements.length === 1 && elements[0].getBoundingClientRect().height <= 0) {
-      return Xray.computeBoundingBox(elements[0].children);
+      return computeBoundingBox(elements[0].children);
     }
     const aggregateBounds = {
       top: Number.POSITIVE_INFINITY,
@@ -125,7 +125,7 @@
       width: aggregateBounds.right - aggregateBounds.left,
       height: aggregateBounds.bottom - aggregateBounds.top
     };
-  }
+  };
 
   Xray.Specimen = (function () {
     Specimen.all = [];
@@ -152,7 +152,7 @@
     };
 
     Specimen.prototype.makeBox = function () {
-      this.bounds = Xray.computeBoundingBox(this.contents);
+      this.bounds = computeBoundingBox(this.contents);
 
       const box = document.createElement('div');
       box.className = 'xray-specimen';
