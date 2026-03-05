@@ -33,6 +33,10 @@
     const style = window.getComputedStyle(el);
     return style.display !== 'none' && style.visibility !== 'hidden';
   };
+  const isToggleShortcut = (event, isMac) => {
+    const modifierPressed = (isMac && event.metaKey) || (!isMac && event.ctrlKey);
+    return modifierPressed && event.shiftKey && event.key.toLowerCase() === 'x';
+  };
   const getOverlay = () => {
     if (!Xray.overlay) {
       Xray.overlay = new XrayOverlay();
@@ -47,14 +51,14 @@
     Xray.initialized = true;
     const isMac = navigator.platform.toUpperCase().indexOf('MAC') !== -1;
     document.addEventListener('keydown', (e) => {
-      if ((isMac && e.metaKey || !isMac && e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'x') {
+      if (isToggleShortcut(e, isMac)) {
         if (Xray.isShowing) {
           getOverlay().hide();
         } else {
           getOverlay().show();
         }
       }
-      if (Xray.isShowing && e.key === 'Escape') {
+      else if (Xray.isShowing && e.key === 'Escape') {
         getOverlay().hide();
       }
     });
