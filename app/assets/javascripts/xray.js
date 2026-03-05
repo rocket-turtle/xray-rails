@@ -26,14 +26,14 @@
     Xray.initialized = true;
     is_mac = navigator.platform.toUpperCase().indexOf('MAC') !== -1;
     document.addEventListener('keydown', (e) => {
-      if ((is_mac && e.metaKey || !is_mac && e.ctrlKey) && e.shiftKey && e.keyCode === 88) {
+      if ((is_mac && e.metaKey || !is_mac && e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'x') {
         if (Xray.isShowing) {
           XrayOverlay.instance().hide();
         } else {
           XrayOverlay.instance().show();
         }
       }
-      if (Xray.isShowing && e.keyCode === 27) {
+      if (Xray.isShowing && e.key === 'Escape') {
         XrayOverlay.instance().hide();
       }
     });
