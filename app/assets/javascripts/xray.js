@@ -37,6 +37,12 @@
     const modifierPressed = (isMac && event.metaKey) || (!isMac && event.ctrlKey);
     return modifierPressed && event.shiftKey && event.key.toLowerCase() === 'x';
   };
+  const isMacOS = () => {
+    if (navigator.userAgentData && navigator.userAgentData.platform) {
+      return navigator.userAgentData.platform.toLowerCase().includes('mac');
+    }
+    return /Mac/.test(navigator.userAgent);
+  };
   const getOverlay = () => {
     if (!Xray.overlay) {
       Xray.overlay = new XrayOverlay();
@@ -49,7 +55,7 @@
       return;
     }
     Xray.initialized = true;
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') !== -1;
+    const isMac = isMacOS();
     document.addEventListener('keydown', (e) => {
       if (isToggleShortcut(e, isMac)) {
         if (Xray.isShowing) {
