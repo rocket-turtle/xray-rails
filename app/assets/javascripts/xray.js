@@ -136,7 +136,6 @@
 
     constructor(contents, info = {}) {
       this.contents = toElementArray(contents);
-      this.firstEl = this.contents[0] || null;
       this.name = info.name;
       this.path = info.path;
     }
@@ -205,11 +204,11 @@
       findTemplates();
       const specimens = Specimen.all;
 
-      specimens.forEach(element => {
-        if (!element.isVisible()) return;
+      specimens.forEach((specimen) => {
+        if (!specimen.isVisible()) return;
 
-        const box = element.makeBox();
-        box.style.zIndex = Math.ceil(MAX_ZINDEX * 0.9 + element.bounds.top + element.bounds.left);
+        const box = specimen.makeBox();
+        box.style.zIndex = Math.ceil(MAX_ZINDEX * 0.9 + specimen.bounds.top + specimen.bounds.left);
         this.shownBoxes.push(box);
         document.body.appendChild(box);
       });
