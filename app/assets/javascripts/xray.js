@@ -3,11 +3,11 @@
 
   const MAX_ZINDEX = 2147483647;
   const Xray = {};
-  const openPath = (path) => fetch('/_xray/open?path=' + encodeURIComponent(path), {
+  const requestOpenPath = (path) => fetch('/_xray/open?path=' + encodeURIComponent(path), {
     method: 'GET',
     credentials: 'same-origin'
   });
-  const onReady = (callback) => {
+  const runWhenDomReady = (callback) => {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', callback, { once: true });
       return;
@@ -27,14 +27,14 @@
   };
 
   Xray.init = (function () {
-    let is_mac;
+    let isMac;
     if (Xray.initialized) {
       return;
     }
     Xray.initialized = true;
-    is_mac = navigator.platform.toUpperCase().indexOf('MAC') !== -1;
+    isMac = navigator.platform.toUpperCase().indexOf('MAC') !== -1;
     document.addEventListener('keydown', (e) => {
-      if ((is_mac && e.metaKey || !is_mac && e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'x') {
+      if ((isMac && e.metaKey || !isMac && e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'x') {
         if (Xray.isShowing) {
           XrayOverlay.instance().hide();
         } else {
@@ -45,10 +45,10 @@
         XrayOverlay.instance().hide();
       }
     });
-    return onReady(() => {
+    return runWhenDomReady(() => {
       new XrayOverlay();
       Xray.findTemplates();
-      return typeof console !== 'undefined' && console !== null ? console.log('Ready to Xray. Press ' + (is_mac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.') : void 0;
+      return typeof console !== 'undefined' && console !== null ? console.log('Ready to Xray. Press ' + (isMac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.') : void 0;
     });
   })();
 
@@ -64,23 +64,23 @@
     });
 
     comments.forEach((comment) => {
-      const ref = comment.data.match(/^XRAY START (\d+) (.*)$/);
-      if (!ref) return;
+      const match = comment.data.match(/^XRAY START (\d+) (.*)$/);
+      if (!match) return;
 
-      const id = ref[1];
-      const path = ref[2];
+      const id = match[1];
+      const path = match[2];
       const templateContents = [];
-      let el = comment.nextSibling;
+      let currentNode = comment.nextSibling;
 
-      while (!(!el || (el.nodeType === Node.COMMENT_NODE && el.data === ('XRAY END ' + id)))) {
-        if (el.nodeType === Node.ELEMENT_NODE && el.tagName !== 'SCRIPT') {
-          templateContents.push(el);
+      while (!(!currentNode || (currentNode.nodeType === Node.COMMENT_NODE && currentNode.data === ('XRAY END ' + id)))) {
+        if (currentNode.nodeType === Node.ELEMENT_NODE && currentNode.tagName !== 'SCRIPT') {
+          templateContents.push(currentNode);
         }
-        el = el.nextSibling;
+        currentNode = currentNode.nextSibling;
       }
 
-      if (el != null && el.nodeType === Node.COMMENT_NODE) {
-        el.remove();
+      if (currentNode != null && currentNode.nodeType === Node.COMMENT_NODE) {
+        currentNode.remove();
       }
       comment.remove();
 
@@ -96,7 +96,7 @@
     if (elements.length === 1 && elements[0].getBoundingClientRect().height <= 0) {
       return Xray.computeBoundingBox(elements[0].children);
     }
-    const boxFrame = {
+    const aggregateBounds = {
       top: Number.POSITIVE_INFINITY,
       left: Number.POSITIVE_INFINITY,
       right: Number.NEGATIVE_INFINITY,
@@ -107,34 +107,34 @@
       const el = elements[i];
       if (!isElementVisible(el)) continue;
       const rect = el.getBoundingClientRect();
-      const frame = {
+      const elementBounds = {
         top: rect.top + window.scrollY,
         left: rect.left + window.scrollX,
         right: rect.left + window.scrollX + rect.width,
         bottom: rect.top + window.scrollY + rect.height
       };
 
-      if (frame.top < boxFrame.top) boxFrame.top = frame.top;
-      if (frame.left < boxFrame.left) boxFrame.left = frame.left;
-      if (frame.right > boxFrame.right) boxFrame.right = frame.right;
-      if (frame.bottom > boxFrame.bottom) boxFrame.bottom = frame.bottom;
+      if (elementBounds.top < aggregateBounds.top) aggregateBounds.top = elementBounds.top;
+      if (elementBounds.left < aggregateBounds.left) aggregateBounds.left = elementBounds.left;
+      if (elementBounds.right > aggregateBounds.right) aggregateBounds.right = elementBounds.right;
+      if (elementBounds.bottom > aggregateBounds.bottom) aggregateBounds.bottom = elementBounds.bottom;
     }
     return {
-      left: boxFrame.left,
-      top: boxFrame.top,
-      width: boxFrame.right - boxFrame.left,
-      height: boxFrame.bottom - boxFrame.top
+      left: aggregateBounds.left,
+      top: aggregateBounds.top,
+      width: aggregateBounds.right - aggregateBounds.left,
+      height: aggregateBounds.bottom - aggregateBounds.top
     };
   }
 
   Xray.Specimen = (function () {
     Specimen.all = [];
 
-    Specimen.add = function (el, info) {
+    Specimen.add = function (contents, info) {
       if (info == null) {
         info = {};
       }
-      return this.all.push(new this(el, info));
+      return this.all.push(new this(contents, info));
     };
 
     function Specimen (contents, info) {
@@ -142,7 +142,7 @@
         info = {};
       }
       this.contents = toElementArray(contents);
-      this.el = this.contents[0] || null;
+      this.firstEl = this.contents[0] || null;
       this.name = info.name;
       this.path = info.path;
     }
@@ -176,7 +176,7 @@
         box.style.left = style.left;
       }
 
-      box.addEventListener('click', () => { openPath(this.path); });
+      box.addEventListener('click', () => { requestOpenPath(this.path); });
       return box;
     };
 
@@ -240,43 +240,43 @@
 
   class XrayBar {
     bar;
-    elMemo = null;
+    cachedEl = null;
     originalPadding = null;
 
     constructor(bar) {
       this.bar = bar;
     }
 
-    getEl = () => {
-      if (this.elMemo && document.body.contains(this.elMemo)) {
-        return this.elMemo;
+    getBarEl = () => {
+      if (this.cachedEl && document.body.contains(this.cachedEl)) {
+        return this.cachedEl;
       }
 
-      this.elMemo = document.querySelector(this.bar);
-      if (!this.elMemo) return null;
+      this.cachedEl = document.querySelector(this.bar);
+      if (!this.cachedEl) return null;
 
-      this.elMemo.style.zIndex = MAX_ZINDEX;
+      this.cachedEl.style.zIndex = MAX_ZINDEX;
 
-      const controllerBtns = this.elMemo.querySelectorAll('#xray-bar-controller-path .xray-bar-btn');
+      const controllerBtns = this.cachedEl.querySelectorAll('#xray-bar-controller-path .xray-bar-btn');
       controllerBtns.forEach(btn => {
         btn.addEventListener('click', () => {
           const path = btn.getAttribute('data-path');
           if (path) {
-            openPath(path);
+            requestOpenPath(path);
           }
         });
       });
 
-      const settingsBtn = this.elMemo.querySelector('.xray-bar-settings-btn');
+      const settingsBtn = this.cachedEl.querySelector('.xray-bar-settings-btn');
       if (settingsBtn) {
         settingsBtn.addEventListener('click', () => XrayOverlay.instance().settings.toggle());
       }
 
-      return this.elMemo;
+      return this.cachedEl;
     };
 
     show = () => {
-      const el = this.getEl();
+      const el = this.getBarEl();
       if (!el) return;
 
       el.style.display = 'block';
@@ -292,7 +292,7 @@
     };
 
     hide = () => {
-      const el = this.getEl();
+      const el = this.getBarEl();
       if (!el) return;
 
       el.style.display = 'none';
@@ -304,30 +304,30 @@
 
   class XraySettings {
     settings;
-    elMemo = null;
+    cachedEl = null;
 
     constructor (settings) {
       this.settings = settings;
     }
 
-    getEl = () => {
-      if (this.elMemo && document.body.contains(this.elMemo)) {
-        return this.elMemo;
+    getSettingsEl = () => {
+      if (this.cachedEl && document.body.contains(this.cachedEl)) {
+        return this.cachedEl;
       }
 
-      this.elMemo = document.querySelector(this.settings);
-      if (!this.elMemo) return null;
+      this.cachedEl = document.querySelector(this.settings);
+      if (!this.cachedEl) return null;
 
-      const form = this.elMemo.querySelector('form');
+      const form = this.cachedEl.querySelector('form');
       if (form) {
         form.addEventListener('submit', this.save);
       }
 
-      return this.elMemo;
+      return this.cachedEl;
     };
 
     toggle = () => {
-      const el = this.getEl();
+      const el = this.getSettingsEl();
       if (el) {
         const current = window.getComputedStyle(el).display;
         el.style.display = current === 'none' ? 'block' : 'none';
@@ -336,7 +336,7 @@
 
     save = (e) => {
       e.preventDefault();
-      const el = this.getEl();
+      const el = this.getSettingsEl();
       if (!el) return;
 
       const editorInput = el.querySelector('#xray-editor-input');
@@ -352,16 +352,16 @@
     };
 
     displayUpdateMsg = (success) => {
-      const el = this.getEl();
+      const el = this.getSettingsEl();
       if (!el) return;
 
-      const msg = document.createElement('span');
-      msg.className = `xray-settings-${success ? 'success' : 'error'} xray-settings-update-msg`;
-      msg.textContent = success ? 'Success!' : 'Uh oh, something went wrong!';
-      el.appendChild(msg);
+      const statusMessageEl = document.createElement('span');
+      statusMessageEl.className = `xray-settings-${success ? 'success' : 'error'} xray-settings-update-msg`;
+      statusMessageEl.textContent = success ? 'Success!' : 'Uh oh, something went wrong!';
+      el.appendChild(statusMessageEl);
 
       setTimeout(() => {
-        msg.remove();
+        statusMessageEl.remove();
         this.toggle();
       }, 3000);
     }
