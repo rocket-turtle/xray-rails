@@ -11,7 +11,7 @@ describe Xray::Middleware, "in a middleware stack" do
   end
 
   context "when the response is html and contains <body>" do
-    it "does not inject xray.js or the xray bar if jquery is not found" do
+    it "does not inject xray.css or the xray bar if xray.js is not found" do
       response = mock_response 200, 'text/html', <<-HTML
         <html>
           <head></head>

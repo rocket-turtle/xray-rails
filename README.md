@@ -20,8 +20,6 @@ It can reveal Rails views and partials
 
 ## Installation
 
-Xray depends on **jQuery**.
-
 This gem should only be present during development. Add it to your Gemfile:
 
 ```ruby
@@ -36,7 +34,7 @@ Then bundle and delete your cached assets:
 $ bundle && rm -rf tmp/cache/assets
 ```
 
-You need to insert Xray's script *after* jquery in your template as ist own script tag.
+Insert Xray's script in your template as its own script tag.
 
 ```
 = javascript_include_tag 'xray', nonce: true if Rails.env.development?
