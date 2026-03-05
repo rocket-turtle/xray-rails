@@ -3,10 +3,14 @@
 
   const MAX_ZINDEX = 2147483647;
   const Xray = {};
+  const ensureResponseOk = (response) => {
+    if (response.ok) return response;
+    throw new Error(`Request failed with status ${response.status}`);
+  };
   const requestXray = (url, options = {}) => fetch(url, {
     credentials: 'same-origin',
     ...options
-  });
+  }).then(ensureResponseOk);
   const requestOpenPath = (path) => requestXray('/_xray/open?path=' + encodeURIComponent(path), {
     method: 'GET'
   });
@@ -194,7 +198,9 @@
         box.style.left = style.left;
       }
 
-      box.addEventListener('click', () => { requestOpenPath(this.path); });
+      box.addEventListener('click', () => {
+        requestOpenPath(this.path).catch(() => {});
+      });
       return box;
     }
   }
@@ -273,7 +279,7 @@
         button.addEventListener('click', () => {
           const path = button.getAttribute('data-path');
           if (path) {
-            requestOpenPath(path);
+            requestOpenPath(path).catch(() => {});
           }
         });
       });
