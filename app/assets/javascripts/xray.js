@@ -71,7 +71,9 @@
     runWhenDomReady(() => {
       getOverlay();
       findTemplates();
-      return typeof console !== 'undefined' && console !== null ? console.log('Ready to Xray. Press ' + (isMac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.') : void 0;
+      if (typeof console !== 'undefined' && console !== null) {
+        console.log('Ready to Xray. Press ' + (isMac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.');
+      }
     });
   };
 
@@ -95,7 +97,7 @@
       const templateContents = [];
       let currentNode = comment.nextSibling;
 
-      while (!(!currentNode || (currentNode.nodeType === Node.COMMENT_NODE && currentNode.data === ('XRAY END ' + id)))) {
+      while (currentNode && !(currentNode.nodeType === Node.COMMENT_NODE && currentNode.data === ('XRAY END ' + id))) {
         if (currentNode.nodeType === Node.ELEMENT_NODE && currentNode.tagName !== 'SCRIPT') {
           templateContents.push(currentNode);
         }
@@ -231,7 +233,7 @@
     };
 
     reset = () => {
-      this.shownBoxes.forEach(box => box.remove());
+      this.shownBoxes.forEach((box) => box.remove());
       this.shownBoxes = [];
     };
 
@@ -267,9 +269,9 @@
       this.cachedEl.style.zIndex = MAX_ZINDEX;
 
       const controllerBtns = this.cachedEl.querySelectorAll('#xray-bar-controller-path .xray-bar-btn');
-      controllerBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-          const path = btn.getAttribute('data-path');
+      controllerBtns.forEach((button) => {
+        button.addEventListener('click', () => {
+          const path = button.getAttribute('data-path');
           if (path) {
             requestOpenPath(path);
           }
@@ -315,7 +317,7 @@
     settings;
     cachedEl = null;
 
-    constructor (settings) {
+    constructor(settings) {
       this.settings = settings;
     }
 
@@ -369,8 +371,7 @@
         statusMessageEl.remove();
         this.toggle();
       }, 3000);
-    }
+    };
   }
-
   Xray.init();
 })();
