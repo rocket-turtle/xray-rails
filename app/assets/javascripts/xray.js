@@ -193,20 +193,20 @@
     bar = new XrayBar('#xray-bar');
     settings = new XraySettings('#xray-settings');
     shownBoxes = [];
-    $overlay = document.createElement('div');
+    overlayEl = document.createElement('div');
 
     constructor() {
       XrayOverlay.singletonInstance = this;
-      this.$overlay.id = 'xray-overlay';
-      this.$overlay.addEventListener('click', this.hide);
+      this.overlayEl.id = 'xray-overlay';
+      this.overlayEl.addEventListener('click', this.hide);
     }
 
     show = () => {
       this.reset();
       Xray.isShowing = true;
 
-      if (!this.$overlay.isConnected) {
-        document.body.appendChild(this.$overlay);
+      if (!this.overlayEl.isConnected) {
+        document.body.appendChild(this.overlayEl);
         this.bar.show();
       }
 
@@ -230,8 +230,8 @@
 
     hide = () => {
       Xray.isShowing = false;
-      if (this.$overlay.isConnected) {
-        this.$overlay.remove();
+      if (this.overlayEl.isConnected) {
+        this.overlayEl.remove();
       }
       this.reset();
       this.bar.hide();
@@ -240,25 +240,25 @@
 
   class XrayBar {
     bar;
-    $el_memo = null;
+    elMemo = null;
     originalPadding = null;
 
     constructor(bar) {
       this.bar = bar;
     }
 
-    $el = () => {
-      if (this.$el_memo && document.body.contains(this.$el_memo)) {
-        return this.$el_memo;
+    getEl = () => {
+      if (this.elMemo && document.body.contains(this.elMemo)) {
+        return this.elMemo;
       }
 
-      this.$el_memo = document.querySelector(this.bar);
-      if (!this.$el_memo) return null;
+      this.elMemo = document.querySelector(this.bar);
+      if (!this.elMemo) return null;
 
-      this.$el_memo.style.zIndex = MAX_ZINDEX;
+      this.elMemo.style.zIndex = MAX_ZINDEX;
 
-      const $controllerBtns = this.$el_memo.querySelectorAll('#xray-bar-controller-path .xray-bar-btn');
-      $controllerBtns.forEach(btn => {
+      const controllerBtns = this.elMemo.querySelectorAll('#xray-bar-controller-path .xray-bar-btn');
+      controllerBtns.forEach(btn => {
         btn.addEventListener('click', () => {
           const path = btn.getAttribute('data-path');
           if (path) {
@@ -267,16 +267,16 @@
         });
       });
 
-      const $settingsBtn = this.$el_memo.querySelector('.xray-bar-settings-btn');
-      if ($settingsBtn) {
-        $settingsBtn.addEventListener('click', () => XrayOverlay.instance().settings.toggle());
+      const settingsBtn = this.elMemo.querySelector('.xray-bar-settings-btn');
+      if (settingsBtn) {
+        settingsBtn.addEventListener('click', () => XrayOverlay.instance().settings.toggle());
       }
 
-      return this.$el_memo;
+      return this.elMemo;
     };
 
     show = () => {
-      const el = this.$el();
+      const el = this.getEl();
       if (!el) return;
 
       el.style.display = 'block';
@@ -292,7 +292,7 @@
     };
 
     hide = () => {
-      const el = this.$el();
+      const el = this.getEl();
       if (!el) return;
 
       el.style.display = 'none';
@@ -304,42 +304,42 @@
 
   class XraySettings {
     settings;
-    $el_memo = null;
+    elMemo = null;
 
     constructor (settings) {
       this.settings = settings;
     }
 
-    $el = () => {
-      if (this.$el_memo && document.body.contains(this.$el_memo)) {
-        return this.$el_memo;
+    getEl = () => {
+      if (this.elMemo && document.body.contains(this.elMemo)) {
+        return this.elMemo;
       }
 
-      this.$el_memo = document.querySelector(this.settings);
-      if (!this.$el_memo) return null;
+      this.elMemo = document.querySelector(this.settings);
+      if (!this.elMemo) return null;
 
-      const form = this.$el_memo.querySelector('form');
+      const form = this.elMemo.querySelector('form');
       if (form) {
         form.addEventListener('submit', this.save);
       }
 
-      return this.$el_memo;
+      return this.elMemo;
     };
 
     toggle = () => {
-      const $el = this.$el();
-      if ($el) {
-        const current = window.getComputedStyle($el).display;
-        $el.style.display = current === 'none' ? 'block' : 'none';
+      const el = this.getEl();
+      if (el) {
+        const current = window.getComputedStyle(el).display;
+        el.style.display = current === 'none' ? 'block' : 'none';
       }
     };
 
     save = (e) => {
       e.preventDefault();
-      const $el = this.$el();
-      if (!$el) return;
+      const el = this.getEl();
+      if (!el) return;
 
-      const editorInput = $el.querySelector('#xray-editor-input');
+      const editorInput = el.querySelector('#xray-editor-input');
       const editor = editorInput ? editorInput.value : '';
 
       fetch('/_xray/config', {
@@ -352,13 +352,13 @@
     };
 
     displayUpdateMsg = (success) => {
-      const $el = this.$el();
-      if (!$el) return;
+      const el = this.getEl();
+      if (!el) return;
 
       const msg = document.createElement('span');
       msg.className = `xray-settings-${success ? 'success' : 'error'} xray-settings-update-msg`;
       msg.textContent = success ? 'Success!' : 'Uh oh, something went wrong!';
-      $el.appendChild(msg);
+      el.appendChild(msg);
 
       setTimeout(() => {
         msg.remove();
