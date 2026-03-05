@@ -47,12 +47,12 @@
     });
     return runWhenDomReady(() => {
       new XrayOverlay();
-      Xray.findTemplates();
+      findTemplates();
       return typeof console !== 'undefined' && console !== null ? console.log('Ready to Xray. Press ' + (isMac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.') : void 0;
     });
   })();
 
-  Xray.findTemplates = function () {
+  const findTemplates = () => {
     const comments = [];
     const elements = document.querySelectorAll('*:not(iframe,script)');
     elements.forEach((element) => {
@@ -202,7 +202,7 @@
         this.bar.show();
       }
 
-      Xray.findTemplates();
+      findTemplates();
       const specimens = Specimen.all;
 
       specimens.forEach(element => {
