@@ -3,9 +3,17 @@
 
   const MAX_ZINDEX = 2147483647;
   const Xray = {};
-  const requestOpenPath = (path) => fetch('/_xray/open?path=' + encodeURIComponent(path), {
-    method: 'GET',
-    credentials: 'same-origin'
+  const requestXray = (url, options = {}) => fetch(url, {
+    credentials: 'same-origin',
+    ...options
+  });
+  const requestOpenPath = (path) => requestXray('/_xray/open?path=' + encodeURIComponent(path), {
+    method: 'GET'
+  });
+  const requestConfigUpdate = (editor) => requestXray('/_xray/config', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ editor })
   });
   const runWhenDomReady = (callback) => {
     if (document.readyState === 'loading') {
@@ -333,11 +341,7 @@
       const editorInput = el.querySelector('#xray-editor-input');
       const editor = editorInput ? editorInput.value : '';
 
-      fetch('/_xray/config', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ editor })
-      })
+      requestConfigUpdate(editor)
         .then(() => this.displayUpdateMsg(true))
         .catch(() => this.displayUpdateMsg(false));
     };
