@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency 'actionview', '>= 7.2'
   gem.add_development_dependency 'rails', '~> 7.2.0'
 
-  gem.add_development_dependency 'rspec-rails', '~> 6.0'
+  gem.add_development_dependency 'rspec-rails', '~> 8.0'
   gem.add_development_dependency 'sprockets-rails'
 
   # Required for the dummy Rails app in spec/dummy
