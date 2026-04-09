@@ -23,7 +23,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'sprockets-rails'
 
   # Required for the dummy Rails app in spec/dummy
-  gem.add_development_dependency 'sqlite3', '~> 1.7'
+  gem.add_development_dependency 'sqlite3', '~> 2.9'
   gem.add_development_dependency 'capybara'
   gem.add_development_dependency 'byebug'
 
