@@ -2,7 +2,7 @@ require 'spec_helper'
 
 describe Xray::Rendering do
   it 'ActionView::Template prepend' do
-    expect(ActionView::Template.ancestors.first).to be(Xray::Rendering)
+    expect(ActionView::Template.ancestors).to include(Xray::Rendering)
   end
 
   context '#render' do
@@ -42,4 +42,3 @@ describe Xray::Rendering do
     end
   end
 end
-

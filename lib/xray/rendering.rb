@@ -20,5 +20,9 @@ module Xray
 end
 
 ActiveSupport.on_load(:action_view) do
-  ActionView::Template.prepend Xray::Rendering
+  require "action_view/template"
+
+  unless ActionView::Template.ancestors.include?(Xray::Rendering)
+    ActionView::Template.prepend Xray::Rendering
+  end
 end
