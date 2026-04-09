@@ -13,7 +13,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.version       = Xray::VERSION
   gem.license       = 'MIT'
-  gem.required_ruby_version = '>= 3.4'
+  gem.required_ruby_version = '>= 3.3'
 
   gem.add_dependency 'activesupport', '>= 7.2'
   gem.add_dependency 'actionview', '>= 7.2'
