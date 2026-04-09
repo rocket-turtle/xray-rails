@@ -28,4 +28,5 @@ Dir[Pathname.new(__dir__).join('support/**/*.rb')].each {|f| require f}
 Capybara.configure do |config|
   config.ignore_hidden_elements = false
   config.javascript_driver = :selenium_headless
+  config.default_max_wait_time = 2
 end
