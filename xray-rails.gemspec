@@ -29,5 +29,4 @@ Gem::Specification.new do |gem|
 
   gem.add_development_dependency 'selenium-webdriver'
   gem.add_development_dependency 'puma'
-  gem.add_development_dependency 'webdrivers'
 end
