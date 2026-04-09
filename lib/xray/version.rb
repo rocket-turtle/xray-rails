@@ -1,3 +1,3 @@
 module Xray
-  VERSION = "0.3.2.3".freeze
+  VERSION = "0.4.0".freeze
 end
