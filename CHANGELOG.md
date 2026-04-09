@@ -10,6 +10,15 @@ lesser changes or bug fixes.
 
 ## [Unreleased][]
 
+## [0.5.0][] (2026-04-09)
+
+* Update Rails support/development matrix through Rails 7.2, including dummy app config/defaults updates for Rails 7.x conventions.
+* Update runtime dependency minimums to `activesupport >= 7.2` and `actionview >= 7.2`.
+* Update development dependencies: `rspec-rails` to 8.x, `sqlite3` to 2.x, and `selenium-webdriver` to 4.41.
+* Remove `webdrivers` development dependency and rely on modern Selenium driver management.
+* Update local Ruby target to 3.4.9 (`.ruby-version`) and declare `required_ruby_version >= 3.3`.
+* Add request-level rendering patch coverage to verify `Xray::Rendering` is prepended in an app render path.
+
 ## [0.4.0][] (2026-04-09)
 
 * Remove jQuery from the frontend and migrate `xray.js` to native DOM APIs, `fetch`, and ES6 class-based components (`Bar`, `Overlay`, `Settings`, `Specimen`).
@@ -131,7 +140,12 @@ lesser changes or bug fixes.
 
 
 [Semver]: http://semver.org
-[Unreleased]: https://github.com/brentd/xray-rails/compare/v0.3.2...HEAD
+[Unreleased]: https://github.com/brentd/xray-rails/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/brentd/xray-rails/compare/v0.4.0...v0.5.0
+[0.4.0]: https://github.com/brentd/xray-rails/compare/v0.3.2.3...v0.4.0
+[0.3.2.3]: https://github.com/brentd/xray-rails/compare/v0.3.2.2...v0.3.2.3
+[0.3.2.2]: https://github.com/brentd/xray-rails/compare/v0.3.2.1...v0.3.2.2
+[0.3.2.1]: https://github.com/brentd/xray-rails/compare/v0.3.2...v0.3.2.1
 [0.3.2]: https://github.com/brentd/xray-rails/compare/v0.3.1...v0.3.2
 [0.3.1]: https://github.com/brentd/xray-rails/compare/v0.3.0...v0.3.1
 [0.3.0]: https://github.com/brentd/xray-rails/compare/v0.2.0...v0.3.0
