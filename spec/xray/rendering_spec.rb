@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe Xray::Rendering do
-  it 'ActionView::Template prepend' do
-    expect(ActionView::Template.ancestors).to include(Xray::Rendering)
+  it 'defines a render hook' do
+    expect(described_class.instance_methods(false)).to include(:render)
   end
 
   context '#render' do

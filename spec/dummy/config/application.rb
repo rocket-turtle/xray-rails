@@ -16,7 +16,7 @@ require 'xray-rails'
 
 module Dummy
   class Application < Rails::Application
-    config.load_defaults 7.0
+    config.load_defaults 7.1
     config.filter_parameters += [:password]
 
     if config.respond_to?(:hosts)
