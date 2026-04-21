@@ -5,7 +5,7 @@
   window._xrayLoaded = true;
 
   const MAX_ZINDEX = 2147483647;
-  const Xray = {};
+  let overlay, isShowing;
   const ensureResponseOk = (response) => {
     if (response.ok) return response;
     throw new Error(`Request failed with status ${response.status}`);
@@ -50,21 +50,16 @@
     }
     return /Mac/.test(navigator.userAgent);
   };
-  Xray.init = () => {
+  const init = () => {
     const isMac = isMacOS();
     let mutationTimer;
-    Xray.overlay = new XrayOverlay();
+    overlay = new XrayOverlay();
 
     document.addEventListener('keydown', (e) => {
       if (isToggleShortcut(e, isMac)) {
-        if (Xray.isShowing) {
-          Xray.overlay.hide();
-        } else {
-          Xray.overlay.show();
-        }
-      }
-      else if (Xray.isShowing && e.key === 'Escape') {
-        Xray.overlay.hide();
+        isShowing ? overlay.hide() : overlay.show();
+      } else if (isShowing && e.key === 'Escape') {
+        overlay.hide();
       }
     });
 
@@ -243,7 +238,7 @@
 
     show = () => {
       this.reset();
-      Xray.isShowing = true;
+      isShowing = true;
 
       if (!this.overlayEl.isConnected) {
         document.body.appendChild(this.overlayEl);
@@ -269,7 +264,7 @@
     };
 
     hide = () => {
-      Xray.isShowing = false;
+      isShowing = false;
       if (this.overlayEl.isConnected) {
         this.overlayEl.remove();
       }
@@ -404,5 +399,5 @@
       }, 3000);
     };
   }
-  Xray.init();
+  init();
 })();
