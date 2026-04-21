@@ -1,6 +1,9 @@
 (function () {
   'use strict';
 
+  if (window._xrayLoaded) return;
+  window._xrayLoaded = true;
+
   const MAX_ZINDEX = 2147483647;
   const Xray = {};
   const ensureResponseOk = (response) => {
