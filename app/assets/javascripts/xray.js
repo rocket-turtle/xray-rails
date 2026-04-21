@@ -110,6 +110,13 @@
 
   const XRAY_START_COMMENT_REGEX = /^XRAY START (\d+) (.*)$/;
   const findTemplates = () => {
+    try {
+      findTemplatesInner();
+    } catch (e) {
+      console.warn('[xray] Failed to parse templates:', e);
+    }
+  };
+  const findTemplatesInner = () => {
     const root = document.body || document.documentElement;
     if (!root) return;
 
