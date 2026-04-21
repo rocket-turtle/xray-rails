@@ -10,6 +10,14 @@ lesser changes or bug fixes.
 
 ## [Unreleased][]
 
+## [0.6.0][] (2026-04-21)
+
+* Add full Turbo/Hotwire compatibility: re-scan templates after `turbo:render` and `turbo:frame-render`, and handle Turbo Stream DOM mutations via a debounced `MutationObserver`.
+* Fix overlay stacking after Turbo Drive navigation — guard the IIFE with `window._xrayLoaded` so only the first page load initializes Xray.
+* Add error boundary around template parsing: failures now surface as a `console.warn` instead of silently breaking the overlay.
+* Remove hardcoded `/usr/local/bin/subl` editor fallback; raise a clear `RuntimeError` when no editor is configured via `$GEM_EDITOR`, `$VISUAL`, or `$EDITOR`.
+* Refactor JS internals: drop the `Xray` namespace object in favour of module-level variables; remove `getOverlay`, `Xray.initialized`, and `findTemplatesInner`.
+
 ## [0.5.0][] (2026-04-09)
 
 * Update Rails support/development matrix through Rails 7.2, including dummy app config/defaults updates for Rails 7.x conventions.
