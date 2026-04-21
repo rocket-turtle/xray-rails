@@ -60,6 +60,8 @@
     }
     Xray.initialized = true;
     const isMac = isMacOS();
+    let mutationTimer;
+
     document.addEventListener('keydown', (e) => {
       if (isToggleShortcut(e, isMac)) {
         if (Xray.isShowing) {
@@ -72,12 +74,37 @@
         getOverlay().hide();
       }
     });
+
     runWhenDomReady(() => {
       getOverlay();
       findTemplates();
       if (typeof console !== 'undefined' && console !== null) {
         console.log('Ready to Xray. Press ' + (isMac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.');
       }
+
+      const observer = new MutationObserver((mutations) => {
+        if (!mutations.some(m => m.addedNodes.length > 0)) return;
+        clearTimeout(mutationTimer);
+        mutationTimer = setTimeout(() => {
+          Specimen.prune();
+          findTemplates();
+        }, 50);
+      });
+      observer.observe(document.body, { childList: true, subtree: true });
+    });
+
+    // Turbo Drive full-page render
+    document.addEventListener('turbo:render', () => {
+      clearTimeout(mutationTimer);
+      Specimen.all = [];
+      findTemplates();
+    });
+
+    // Turbo Frame render
+    document.addEventListener('turbo:frame-render', () => {
+      clearTimeout(mutationTimer);
+      Specimen.prune();
+      findTemplates();
     });
   };
 
@@ -173,6 +200,10 @@
 
     static add(contents, info = {}) {
       return this.all.push(new this(contents, info));
+    }
+
+    static prune() {
+      this.all = this.all.filter(s => s.contents.some(el => el.isConnected));
     }
 
     constructor(contents, info = {}) {
