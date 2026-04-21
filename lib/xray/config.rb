@@ -10,8 +10,7 @@ module Xray
     def default_editor
       ENV['GEM_EDITOR'] ||
         ENV['VISUAL'] ||
-        ENV['EDITOR'] ||
-        '/usr/local/bin/subl'
+        ENV['EDITOR']
     end
 
     def editor

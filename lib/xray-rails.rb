@@ -47,6 +47,7 @@ module Xray
 
   def self.open_file(file)
     editor = Xray.config.editor
+    raise "No editor configured for xray-rails. Set $GEM_EDITOR, $VISUAL, or $EDITOR, or configure one via the xray bar." if editor.nil?
     cmd = if editor.include?('$file')
       editor.gsub '$file', file
     else

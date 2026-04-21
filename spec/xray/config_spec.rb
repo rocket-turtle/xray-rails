@@ -6,9 +6,9 @@ describe Xray::Config do
       allow(Xray.config).to receive(:local_config).and_return({})
     end
 
-    it 'should default to /usr/local/bin/subl' do
+    it 'should return nil when no editor env var is set' do
       allow(ENV).to receive(:[])
-      expect(Xray.config.editor).to eq('/usr/local/bin/subl')
+      expect(Xray.config.editor).to be_nil
     end
 
     it 'should use $GEM_EDITOR over $VISUAL and $EDITOR' do
