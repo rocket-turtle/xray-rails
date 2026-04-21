@@ -50,36 +50,25 @@
     }
     return /Mac/.test(navigator.userAgent);
   };
-  const getOverlay = () => {
-    if (!Xray.overlay) {
-      Xray.overlay = new XrayOverlay();
-    }
-    return Xray.overlay;
-  };
-
   Xray.init = () => {
-    if (Xray.initialized) {
-      return;
-    }
-    Xray.initialized = true;
     const isMac = isMacOS();
     let mutationTimer;
+    Xray.overlay = new XrayOverlay();
 
     document.addEventListener('keydown', (e) => {
       if (isToggleShortcut(e, isMac)) {
         if (Xray.isShowing) {
-          getOverlay().hide();
+          Xray.overlay.hide();
         } else {
-          getOverlay().show();
+          Xray.overlay.show();
         }
       }
       else if (Xray.isShowing && e.key === 'Escape') {
-        getOverlay().hide();
+        Xray.overlay.hide();
       }
     });
 
     runWhenDomReady(() => {
-      getOverlay();
       findTemplates();
       if (typeof console !== 'undefined' && console !== null) {
         console.log('Ready to Xray. Press ' + (isMac ? 'cmd+shift+x' : 'ctrl+shift+x') + ' to scan your UI.');
@@ -114,59 +103,42 @@
   const XRAY_START_COMMENT_REGEX = /^XRAY START (\d+) (.*)$/;
   const findTemplates = () => {
     try {
-      findTemplatesInner();
+      const root = document.body || document.documentElement;
+      if (!root) return;
+
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_COMMENT);
+      const startComments = [];
+      let commentNode = walker.nextNode();
+
+      while (commentNode) {
+        const inIgnoredContainer = commentNode.parentElement && commentNode.parentElement.closest('script, iframe');
+        if (inIgnoredContainer) { commentNode = walker.nextNode(); continue; }
+
+        const match = commentNode.data.match(XRAY_START_COMMENT_REGEX);
+        if (match) startComments.push({ comment: commentNode, id: match[1], path: match[2] });
+        commentNode = walker.nextNode();
+      }
+
+      startComments.forEach(({ comment, id, path }) => {
+        const templateContents = [];
+        let currentNode = comment.nextSibling;
+
+        while (currentNode && !(currentNode.nodeType === Node.COMMENT_NODE && currentNode.data === ('XRAY END ' + id))) {
+          if (currentNode.nodeType === Node.ELEMENT_NODE && currentNode.tagName !== 'SCRIPT') {
+            templateContents.push(currentNode);
+          }
+          currentNode = currentNode.nextSibling;
+        }
+
+        const endComment = currentNode?.nodeType === Node.COMMENT_NODE ? currentNode : null;
+        endComment?.remove();
+        comment.remove();
+
+        Specimen.add(templateContents, { name: path.split('/').slice(-1)[0], path });
+      });
     } catch (e) {
       console.warn('[xray] Failed to parse templates:', e);
     }
-  };
-  const findTemplatesInner = () => {
-    const root = document.body || document.documentElement;
-    if (!root) return;
-
-    const walker = document.createTreeWalker(root, NodeFilter.SHOW_COMMENT);
-    const startComments = [];
-    let commentNode = walker.nextNode();
-
-    while (commentNode) {
-      const inIgnoredContainer = commentNode.parentElement && commentNode.parentElement.closest('script, iframe');
-      if (inIgnoredContainer) {
-        commentNode = walker.nextNode();
-        continue;
-      }
-
-      const match = commentNode.data.match(XRAY_START_COMMENT_REGEX);
-      if (match) {
-        startComments.push({
-          comment: commentNode,
-          id: match[1],
-          path: match[2]
-        });
-      }
-      commentNode = walker.nextNode();
-    }
-
-    startComments.forEach(({ comment, id, path }) => {
-      const templateContents = [];
-      let currentNode = comment.nextSibling;
-
-      while (currentNode && !(currentNode.nodeType === Node.COMMENT_NODE && currentNode.data === ('XRAY END ' + id))) {
-        if (currentNode.nodeType === Node.ELEMENT_NODE && currentNode.tagName !== 'SCRIPT') {
-          templateContents.push(currentNode);
-        }
-        currentNode = currentNode.nextSibling;
-      }
-
-      const endComment = currentNode && currentNode.nodeType === Node.COMMENT_NODE ? currentNode : null;
-      if (endComment) {
-        endComment.remove();
-      }
-      comment.remove();
-
-      Specimen.add(templateContents, {
-        name: path.split('/').slice(-1)[0],
-        path
-      });
-    });
   };
 
   const computeBoundingBox = (contents) => {
