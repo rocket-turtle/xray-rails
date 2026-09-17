@@ -1,30 +1,16 @@
-require 'spec_helper'
+require "spec_helper"
 
-describe "Xray.augment_template" do
-  it "wraps HTML source with comments containing the path" do
-    allow(Xray).to receive_messages(next_id: 1)
-    source = <<-END.unindent
-      <div class="container">
-      </div>
-    END
-    augmented = Xray.augment_template(source, "/path/to/file.html.erb")
-    expect(augmented).to eql <<-END.unindent
-      <!--XRAY START 1 /path/to/file.html.erb-->
-      <div class="container">
-      </div>
-      <!--XRAY END 1-->
-    END
+RSpec.describe "ActionView template annotations", type: :request do
+  it "includes BEGIN/END filename comments in rendered html" do
+    get "/"
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to match(/<!-- BEGIN .*root\.html\.erb -->/)
+    expect(response.body).to match(/<!-- END .*root\.html\.erb -->/)
   end
 
-  it "does not wrap templates beginning with a doctype" do
-    source = <<-END.unindent
-      <!DOCTYPE html>
-      <html>foo</html>
-    END
-    augmented = Xray.augment_template(source, "/path/to/file.html.erb")
-    expect(augmented).to eql <<-END.unindent
-      <!DOCTYPE html>
-      <html>foo</html>
-    END
+  it "does not include legacy XRAY START/END markers" do
+    get "/"
+    expect(response.body).not_to include("XRAY START")
+    expect(response.body).not_to include("XRAY END")
   end
 end

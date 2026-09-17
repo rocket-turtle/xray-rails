@@ -1,19 +1,23 @@
 module Xray
-  # This is the main point of integration with Rails. This engine hooks into
-  # Sprockets and monkey patches ActionView in order to augment the app's JS
-  # and HTML templates with filepath information that can be used by xray.js
-  # in the browser. It also hooks in middleware for the /_xray/open and
-  # /_xray/config endpoints.
+  # This is the main point of integration with Rails. This engine relies on
+  # ActionView template annotations to surface filepath information that
+  # xray.js can use in the browser. It also hooks in middleware for the
+  # /_xray/open and /_xray/config endpoints.
   class Engine < ::Rails::Engine
     initializer "xray.initialize" do |app|
       app.middleware.use Xray::Middleware
 
-      # Required by Rails 4.1
-      app.config.assets.precompile += %w(xray.js xray.css)
+      # Sprockets refuses to serve an engine asset that is absent from the
+      # precompile list, even in development. Pipelines that resolve xray.js and
+      # xray.css from the engine's asset paths expose no precompile list, and an
+      # app without any pipeline does not respond to `assets` at all.
+      if app.config.respond_to?(:assets) && app.config.assets.precompile
+        app.config.assets.precompile += %w(xray.js xray.css)
+      end
     end
 
     config.after_initialize do |app|
-      ensure_asset_pipeline_enabled! app
+      ensure_action_view_annotations_enabled! app
 
       # This event is called near the beginning of a request cycle. We use it to
       # collect information about the controller and action that is responding, for
@@ -52,12 +56,12 @@ module Xray
       end
     end
 
-    def ensure_asset_pipeline_enabled!(app)
-      unless app.assets
-        raise "xray-rails requires the Rails asset pipeline.
-The asset pipeline is currently disabled in this application.
-Either convert your application to use the asset pipeline, or remove xray-rails from your Gemfile."
-      end
+    def ensure_action_view_annotations_enabled!(app)
+      return if app.config.action_view.annotate_rendered_view_with_filenames
+
+      raise "xray-rails requires ActionView filename annotations.
+Set `config.action_view.annotate_rendered_view_with_filenames = true`
+in your environment config."
     end
   end
 end

@@ -11,7 +11,7 @@ Xray is the missing link between the browser and your app code. Press **command+
 
 ## Current Support
 
-Xray is intended for Rails 6.1+, Ruby 3.1+ and Sprockets 4.
+Xray is intended for Rails 7.2+ and Ruby 3.3+. Any asset pipeline works; on Sprockets 4 the engine registers its own assets for you.
 
 It can reveal Rails views and partials
 
@@ -37,6 +37,13 @@ Render Xray's bar partial in your layout (for example right after `<body>`):
 <%= render partial: "/xray_bar" if Rails.env.development? %>
 ```
 
+Enable Rails filename annotations so Xray can map DOM regions to view files:
+
+```ruby
+# config/environments/development.rb
+config.action_view.annotate_rendered_view_with_filenames = true
+```
+
 Restart your app, visit it in your browser, and press **command+shift+x** (Mac) or **ctrl+shift+x** to reveal the overlay.
 
 ## Configuration
@@ -60,21 +67,21 @@ For something more complex, use the `$file` placeholder.
 
 ## How this works
 
-* At run time, HTML responses from Rails are wrapped with HTML comments containing filepath info.
+* Rails emits HTML comments with template filepaths when `annotate_rendered_view_with_filenames` is enabled.
 * Rendering the `xray_bar` partial adds `xray.js`, `xray.css`, and the Xray UI bar.
-* When the overlay is shown, `xray.js` examines the inserted filepath info to build the overlay.
+* When the overlay is shown, `xray.js` examines those filename annotations to build the overlay.
 
 ## Disabling Xray
 
-Xray augments HTML templates by wrapping their contents with HTML comments. For some environments such as [Angular.js](http://angularjs.org/), this can cause Angular templates to stop working because Angular expects only one root node in the template HTML. You can pass in the option `xray: false` to any partial render statements to ensure Xray does not augment that partial. Example:
+To disable the overlay UI, stop rendering the `xray_bar` partial in your layout.
+
+If you keep xray-rails enabled, filename annotations must stay enabled:
 
 ```ruby
-render partial: 'my_partial', locals: { xray: false }
+config.action_view.annotate_rendered_view_with_filenames = true
 ```
 
-Note that this disables Xray's HTML comment wrappers for `my_partial`, but not any sub-partials rendered within that template, if any. You must pass `xray: false` to each `render` call where you want Xray disabled.
-
-Currently there is no way to disable Xray entirely for a given request. If this feature is important to you, please leave a comment on [issue #75](https://github.com/brentd/xray-rails/issues/75). PRs are appreciated!
+If you want annotations off, remove xray-rails from the environment where you disable them.
 
 ## Contributing
 

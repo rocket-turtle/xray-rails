@@ -1,5 +1,4 @@
 require_relative "xray/version"
-require_relative "xray/rendering"
 require_relative "xray/config"
 require_relative "xray/middleware"
 
@@ -16,33 +15,6 @@ module Xray
   # the Xray bar.
   def self.request_info
     Thread.current[:request_info] ||= {}
-  end
-
-  # Returns augmented HTML where the source is simply wrapped in an HTML
-  # comment with filepath info. Xray.js uses these comments to associate
-  # elements with the templates that rendered them.
-  #
-  # This:
-  #   <div class=".my-element">
-  #     ...
-  #   </div>
-  #
-  # Becomes:
-  #   <!-- XRAY START 123 /path/to/file.html -->
-  #   <div class=".my-element">
-  #     ...
-  #   </div>
-  #   <!-- XRAY END 123 -->
-  def self.augment_template(source, path)
-    id = next_id
-    return source if source.include?('<!DOCTYPE')
-
-    augmented = "<!--XRAY START #{id} #{path}-->\n#{source}\n<!--XRAY END #{id}-->"
-    ActiveSupport::SafeBuffer === source ? ActiveSupport::SafeBuffer.new(augmented) : augmented
-  end
-
-  def self.next_id
-    @id = (@id ||= 0) + 1
   end
 
   def self.open_file(file)

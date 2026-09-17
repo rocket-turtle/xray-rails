@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    xray-rails (0.5.0)
+    xray-rails (0.6.0)
       actionview (>= 7.2)
       activesupport (>= 7.2)
 

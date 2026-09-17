@@ -1,10 +1,11 @@
 require "spec_helper"
 
-RSpec.describe "Xray rendering patch", type: :request do
-  it "prepends Xray::Rendering to ActionView::Template" do
+RSpec.describe "Rails rendering annotations", type: :request do
+  it "renders filename annotations for templates used by xray.js" do
     get "/"
     expect(response).to have_http_status(:ok)
 
-    expect(ActionView::Template.ancestors.first).to be(Xray::Rendering)
+    expect(response.body).to include("BEGIN app/views/application/root.html.erb")
+    expect(response.body).to include("END app/views/application/root.html.erb")
   end
 end

@@ -85,8 +85,10 @@ describe Xray::Middleware, "in a Rails app" do
   end
 
   context "edge cases" do
-    it "does not add html comments to mailer templates" do
+    it "uses Rails template annotations for mailer templates when enabled" do
       mail = TestMailer.hello
+      expect(mail.body.raw_source).to include('<!-- BEGIN app/views/test_mailer/hello.html.erb -->')
+      expect(mail.body.raw_source).to include('<!-- END app/views/test_mailer/hello.html.erb -->')
       expect(mail.body.raw_source).not_to include('<!--XRAY START')
     end
   end

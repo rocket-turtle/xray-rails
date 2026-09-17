@@ -10,6 +10,19 @@ lesser changes or bug fixes.
 
 ## [Unreleased][]
 
+* **Breaking:** Replace the `ActionView::Template#render` monkey patch with Rails' built-in
+  `config.action_view.annotate_rendered_view_with_filenames`. Apps must enable that option in every
+  environment where xray-rails is loaded; the engine raises at boot otherwise.
+* **Breaking:** Remove `Xray.augment_template`, `Xray.next_id`, `Xray::Rendering`, and the
+  `render partial: '...', locals: { xray: false }` opt-out. Disable Xray by not rendering the
+  `xray_bar` partial instead.
+* Parse Rails `BEGIN`/`END` filename comments in xray.js, matching nested ranges with a stack so
+  partials inside partials resolve to the correct template.
+* Drop the `ensure_asset_pipeline_enabled!` boot check. It read `app.assets`, which sprockets-rails
+  only sets when `config.assets.compile` is true, so it raised on otherwise healthy configurations.
+* Register `xray.js`/`xray.css` for precompilation only when the asset pipeline exposes a precompile
+  list, so the engine no longer raises on Propshaft or on apps with no pipeline at all.
+
 ## [0.6.0][] (2026-04-21)
 
 * Add full Turbo/Hotwire compatibility: re-scan templates after `turbo:render` and `turbo:frame-render`, and handle Turbo Stream DOM mutations via a debounced `MutationObserver`.

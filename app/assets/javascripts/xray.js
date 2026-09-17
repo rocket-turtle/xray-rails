@@ -95,39 +95,78 @@
     });
   };
 
-  const XRAY_START_COMMENT_REGEX = /^XRAY START (\d+) (.*)$/;
+  const RAILS_BEGIN_COMMENT_REGEX = /^BEGIN (.+)$/;
+  const RAILS_END_COMMENT_REGEX = /^END (.+)$/;
+  const parseTemplateComment = (commentText) => {
+    const text = commentText.trim();
+    let match = text.match(RAILS_BEGIN_COMMENT_REGEX);
+    if (match) {
+      return {
+        kind: 'start',
+        token: `rails:${match[1]}`,
+        path: match[1]
+      };
+    }
+
+    match = text.match(RAILS_END_COMMENT_REGEX);
+    if (match) {
+      return {
+        kind: 'end',
+        token: `rails:${match[1]}`
+      };
+    }
+
+    return null;
+  };
   const findTemplates = () => {
     try {
       const root = document.body || document.documentElement;
       if (!root) return;
 
       const walker = document.createTreeWalker(root, NodeFilter.SHOW_COMMENT);
-      const startComments = [];
+      const stack = [];
+      const matchedRanges = [];
       let commentNode = walker.nextNode();
 
       while (commentNode) {
         const inIgnoredContainer = commentNode.parentElement && commentNode.parentElement.closest('script, iframe');
         if (inIgnoredContainer) { commentNode = walker.nextNode(); continue; }
 
-        const match = commentNode.data.match(XRAY_START_COMMENT_REGEX);
-        if (match) startComments.push({ comment: commentNode, id: match[1], path: match[2] });
+        const parsedComment = parseTemplateComment(commentNode.data);
+        if (parsedComment?.kind === 'start') {
+          stack.push({ comment: commentNode, token: parsedComment.token, path: parsedComment.path });
+        } else if (parsedComment?.kind === 'end') {
+          let startIndex = -1;
+          for (let i = stack.length - 1; i >= 0; i--) {
+            if (stack[i].token === parsedComment.token) {
+              startIndex = i;
+              break;
+            }
+          }
+
+          if (startIndex >= 0) {
+            const startComment = stack.splice(startIndex, 1)[0];
+            matchedRanges.push({ start: startComment.comment, end: commentNode, path: startComment.path });
+          }
+        }
         commentNode = walker.nextNode();
       }
 
-      startComments.forEach(({ comment, id, path }) => {
+      matchedRanges.forEach(({ start, end, path }) => {
         const templateContents = [];
-        let currentNode = comment.nextSibling;
+        let currentNode = start.nextSibling;
 
-        while (currentNode && !(currentNode.nodeType === Node.COMMENT_NODE && currentNode.data === ('XRAY END ' + id))) {
+        while (currentNode && currentNode !== end) {
           if (currentNode.nodeType === Node.ELEMENT_NODE && currentNode.tagName !== 'SCRIPT') {
             templateContents.push(currentNode);
           }
           currentNode = currentNode.nextSibling;
         }
 
-        const endComment = currentNode?.nodeType === Node.COMMENT_NODE ? currentNode : null;
-        endComment?.remove();
-        comment.remove();
+        end.remove();
+        start.remove();
+
+        if (path.includes('_xray_bar')) return;
 
         Specimen.add(templateContents, { name: path.split('/').slice(-1)[0], path });
       });
