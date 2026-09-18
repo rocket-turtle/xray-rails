@@ -22,6 +22,8 @@ lesser changes or bug fixes.
   only sets when `config.assets.compile` is true, so it raised on otherwise healthy configurations.
 * Register `xray.js`/`xray.css` for precompilation only when the asset pipeline exposes a precompile
   list, so the engine no longer raises on Propshaft or on apps with no pipeline at all.
+* Drive the browser specs with Cuprite instead of Selenium and Firefox, dropping the geckodriver
+  dependency, and stop disabling the end-to-end specs under CI.
 
 ## [0.6.0][] (2026-04-21)
 

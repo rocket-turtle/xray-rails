@@ -26,4 +26,4 @@ describe Xray, "in a Rails app (end-to-end)", :js do
 
     expect(page).to have_selector('.xray-specimen-handle', text: 'root.html.erb')
   end
-end unless ENV['CI'] == 'true'
+end

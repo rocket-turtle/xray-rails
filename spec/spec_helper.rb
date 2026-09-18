@@ -1,6 +1,7 @@
 require File.expand_path("../dummy/config/environment", __FILE__)
 require 'rspec/rails'
 require 'capybara/rspec'
+require 'capybara/cuprite'
 
 class String
   def unindent
@@ -25,8 +26,12 @@ RSpec.configure do |config|
 end
 Dir[Pathname.new(__dir__).join('support/**/*.rb')].each {|f| require f}
 
+Capybara.register_driver(:cuprite) do |app|
+  Capybara::Cuprite::Driver.new(app, headless: true, window_size: [1200, 800], timeout: 20)
+end
+
 Capybara.configure do |config|
   config.ignore_hidden_elements = false
-  config.javascript_driver = :selenium_headless
+  config.javascript_driver = :cuprite
   config.default_max_wait_time = 2
 end
