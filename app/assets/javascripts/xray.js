@@ -5,6 +5,12 @@
   window._xrayLoaded = true;
 
   const MAX_ZINDEX = 2147483647;
+  const SPECIMEN_ZINDEX = Math.ceil(MAX_ZINDEX * 0.9);
+  const boxArea = (bounds) => {
+    const width = isFinite(bounds.width) ? bounds.width : 0;
+    const height = isFinite(bounds.height) ? bounds.height : 0;
+    return width * height;
+  };
   let overlay, isShowing;
   const ensureResponseOk = (response) => {
     if (response.ok) return response;
@@ -83,6 +89,10 @@
     // Turbo Drive full-page render
     document.addEventListener('turbo:render', () => {
       clearTimeout(mutationTimer);
+      // Turbo swaps <body>, so the overlay and its boxes are already off the
+      // page; without this the state says it is still showing and the next
+      // shortcut press hides an overlay nobody can see.
+      overlay.hide();
       Specimen.all = [];
       findTemplates();
     });
@@ -95,6 +105,10 @@
     });
   };
 
+  // Comments already turned into a specimen. Marking them leaves the document
+  // untouched, so the annotations survive into a Turbo snapshot and a restored
+  // page still has something to scan.
+  const consumedComments = new WeakSet();
   const RAILS_BEGIN_COMMENT_REGEX = /^BEGIN (.+)$/;
   const RAILS_END_COMMENT_REGEX = /^END (.+)$/;
   const parseTemplateComment = (commentText) => {
@@ -129,6 +143,8 @@
       let commentNode = walker.nextNode();
 
       while (commentNode) {
+        if (consumedComments.has(commentNode)) { commentNode = walker.nextNode(); continue; }
+
         const inIgnoredContainer = commentNode.parentElement && commentNode.parentElement.closest('script, iframe');
         if (inIgnoredContainer) { commentNode = walker.nextNode(); continue; }
 
@@ -163,8 +179,8 @@
           currentNode = currentNode.nextSibling;
         }
 
-        end.remove();
-        start.remove();
+        consumedComments.add(start);
+        consumedComments.add(end);
 
         if (path.includes('_xray_bar')) return;
 
@@ -285,13 +301,17 @@
       }
 
       findTemplates();
-      const specimens = Specimen.all;
 
-      specimens.forEach((specimen) => {
-        if (!specimen.isVisible()) return;
+      // makeBox computes the bounds the ordering below depends on, so build every
+      // box before sorting. Largest first: a nested template shares its corner with
+      // the template that rendered it, so only size can keep it on top and clickable.
+      const boxes = Specimen.all
+        .filter((specimen) => specimen.isVisible())
+        .map((specimen) => ({ box: specimen.makeBox(), area: boxArea(specimen.bounds) }))
+        .sort((a, b) => b.area - a.area);
 
-        const box = specimen.makeBox();
-        box.style.zIndex = Math.ceil(MAX_ZINDEX * 0.9 + specimen.bounds.top + specimen.bounds.left);
+      boxes.forEach(({ box }) => {
+        box.style.zIndex = SPECIMEN_ZINDEX;
         this.shownBoxes.push(box);
         document.body.appendChild(box);
       });
@@ -355,7 +375,7 @@
       const el = this.getBarEl();
       if (!el) return;
 
-      el.style.display = 'block';
+      el.hidden = false;
 
       const html = document.documentElement;
       const computedStyle = window.getComputedStyle(html);
@@ -371,7 +391,7 @@
       const el = this.getBarEl();
       if (!el) return;
 
-      el.style.display = 'none';
+      el.hidden = true;
       if (this.originalPadding !== null) {
         document.documentElement.style.paddingBottom = `${this.originalPadding}px`;
       }
@@ -404,10 +424,7 @@
 
     toggle = () => {
       const el = this.getSettingsEl();
-      if (el) {
-        const current = window.getComputedStyle(el).display;
-        el.style.display = current === 'none' ? 'block' : 'none';
-      }
+      if (el) el.hidden = !el.hidden;
     };
 
     save = (e) => {

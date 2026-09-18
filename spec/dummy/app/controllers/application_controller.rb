@@ -4,6 +4,9 @@ class ApplicationController < ActionController::Base
   if respond_to?(:content_security_policy) # Rails >= 5.2
     content_security_policy only: :strict_csp do |policy|
       policy.script_src :self, :strict_dynamic
+      # Lists no source the app serves from, so only the nonce lets xray.css
+      # in, and inline style attributes are refused.
+      policy.style_src 'https://styles.invalid'
     end
   end
 

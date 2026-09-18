@@ -1,7 +1,7 @@
 <%= javascript_include_tag :xray, nonce: true %>
-<%= stylesheet_link_tag :xray %>
+<%= stylesheet_link_tag :xray, nonce: true %>
 
-<div id="xray-bar" style="display:none">
+<div id="xray-bar" hidden>
   <% if Xray.request_info.present? %>
     <div id="xray-bar-controller-path">
       <% if Xray.request_info[:controller] %>
@@ -23,7 +23,7 @@
     </div>
   <% end %>
   <span class="xray-bar-settings-btn xray-icon-cog"></span>
-  <div id="xray-settings" style="display:none">
+  <div id="xray-settings" hidden>
     <form>
       <label for="xray-editor-input">Editor</label>
       <input id="xray-editor-input" type="text" value="<%= Xray.config.editor %>">

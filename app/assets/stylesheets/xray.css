@@ -35,6 +35,11 @@
   z-index:auto;
 }
 
+/* The reset above would otherwise override the hidden attribute. */
+#xray-bar[hidden], #xray-settings[hidden] {
+  display: none !important;
+}
+
 #xray-overlay {
   position: fixed; left: 0; top: 0; bottom: 0; right: 0;
   background: rgba(0,0,0,0.7);

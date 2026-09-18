@@ -27,6 +27,18 @@ lesser changes or bug fixes.
 * **Breaking:** Require Rails 8.0. `activesupport` and `actionview` move from an unbounded `>= 7.2`
   to `~> 8.0`, and the suite now runs against 8.0 rather than 7.2, so support for 7.x is neither
   claimed nor tested any more.
+* Stack overlay boxes by size instead of by position, so a nested template stays clickable when it
+  shares a corner with the template that rendered it.
+* Keep Rails' filename comments in the document instead of deleting them while scanning. Turbo caches
+  its snapshot after the scan, so the stripped markup left the overlay permanently empty on every
+  cache-restored page until a full reload; already-scanned comments are now tracked in a `WeakSet`.
+* Reset the overlay on `turbo:render`. Turbo swaps `<body>`, so the boxes were gone while the state
+  still claimed they were showing, and the next shortcut press hid an overlay nobody could see.
+* Load `xray.css` with the CSP nonce and hide the bar with the `hidden` attribute instead of inline
+  `style` attributes. Under a nonce-based `style-src` the stylesheet was refused and the inline styles
+  were blocked, leaving an unstyled bar permanently on screen.
+* Add fixture-driven specs that exercise xray.js against a static page, covering template parsing,
+  nested ranges and overlay stacking without booting Rails.
 
 ## [0.6.0][] (2026-04-21)
 
