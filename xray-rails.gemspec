@@ -15,9 +15,9 @@ Gem::Specification.new do |gem|
   gem.license       = 'MIT'
   gem.required_ruby_version = '>= 3.3'
 
-  gem.add_dependency 'activesupport', '>= 7.2'
-  gem.add_dependency 'actionview', '>= 7.2'
-  gem.add_development_dependency 'rails', '~> 7.2.0'
+  gem.add_dependency 'activesupport', '~> 8.0'
+  gem.add_dependency 'actionview', '~> 8.0'
+  gem.add_development_dependency 'rails', '~> 8.0.0'
 
   gem.add_development_dependency 'rspec-rails', '~> 8.0'
   gem.add_development_dependency 'sprockets-rails'

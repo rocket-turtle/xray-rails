@@ -24,6 +24,9 @@ lesser changes or bug fixes.
   list, so the engine no longer raises on Propshaft or on apps with no pipeline at all.
 * Drive the browser specs with Cuprite instead of Selenium and Firefox, dropping the geckodriver
   dependency, and stop disabling the end-to-end specs under CI.
+* **Breaking:** Require Rails 8.0. `activesupport` and `actionview` move from an unbounded `>= 7.2`
+  to `~> 8.0`, and the suite now runs against 8.0 rather than 7.2, so support for 7.x is neither
+  claimed nor tested any more.
 
 ## [0.6.0][] (2026-04-21)
 

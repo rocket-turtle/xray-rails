@@ -11,7 +11,7 @@ Xray is the missing link between the browser and your app code. Press **command+
 
 ## Current Support
 
-Xray is intended for Rails 7.2+ and Ruby 3.3+. Any asset pipeline works; on Sprockets 4 the engine registers its own assets for you.
+Xray is intended for Rails 8.0 and Ruby 3.3+. Any asset pipeline works; on Sprockets 4 the engine registers its own assets for you.
 
 It can reveal Rails views and partials
 
