@@ -65,6 +65,10 @@ For something more complex, use the `$file` placeholder.
 :editor: "/usr/local/bin/tmux new-window 'vim $file'"
 ```
 
+Xray only opens files when the app is reached via `localhost`, a `*.localhost`
+name, or an IP address. To use it under another hostname (e.g. `myapp.test` or
+a tunnel), add that host to `config.hosts`; Xray accepts the same entries.
+
 ## How this works
 
 * Rails emits HTML comments with template filepaths when `annotate_rendered_view_with_filenames` is enabled.

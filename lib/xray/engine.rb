@@ -5,7 +5,7 @@ module Xray
   # /_xray/open and /_xray/config endpoints.
   class Engine < ::Rails::Engine
     initializer "xray.initialize" do |app|
-      app.middleware.use Xray::Middleware
+      app.middleware.use Xray::Middleware, hosts: app.config.hosts, root: app.root.to_s
 
       # Sprockets refuses to serve an engine asset that is absent from the
       # precompile list, even in development. Pipelines that resolve xray.js and

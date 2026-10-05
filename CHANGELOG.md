@@ -39,6 +39,27 @@ lesser changes or bug fixes.
   were blocked, leaving an unstyled bar permanently on screen.
 * Add fixture-driven specs that exercise xray.js against a static page, covering template parsing,
   nested ranges and overlay stacking without booting Rails.
+* **Security:** Run the configured editor through an argv instead of a shell. `Xray.open_file` built
+  a command string from the requested path and handed it to `Open3.capture3`, so a path containing
+  shell metacharacters could append commands of its own.
+* **Security:** Require a `POST` carrying an `X-Xray-Request` header on `/_xray/open` and
+  `/_xray/config`. Both act on the developer's machine, and as plain `GET`s they could be triggered
+  by any page visited while the development server was running.
+* **Security:** Only answer `/_xray/open` and `/_xray/config` on `localhost`, `*.localhost`, IP
+  addresses and the hosts listed in `config.hosts`. A DNS rebinding attack makes a page on the
+  attacker's hostname same-origin with the app, so it could set the custom header, store any command
+  as the editor and have it run; the host is read from `Host` rather than `X-Forwarded-Host`, which
+  such a page may set itself. Apps relying on `config.hosts.clear` must now list their hostnames.
+* **Security:** Expand the path `/_xray/open` receives to an absolute path and refuse it with a 404
+  unless it names an existing file. The path is passed to the editor as an argument, where a value
+  like `--flag` or vim's `+cmd` would have been read as an option.
+* Report a failed open in the console instead of discarding the rejected promise, so a missing
+  editor configuration is visible rather than silent.
+* Report a misconfigured editor as a 500 rather than an unhandled exception, and refuse to persist an
+  editor command that cannot be parsed. Exec'ing the editor directly surfaces a missing binary as
+  `SystemCallError` and an unbalanced quote as `ArgumentError`, neither of which a shell used to raise.
+* Namespace the thread-local used for request info, and stop hardcoding `$file` next to the
+  `FILE_PLACEHOLDER` constant that defines it.
 
 ## [0.6.0][] (2026-04-21)
 

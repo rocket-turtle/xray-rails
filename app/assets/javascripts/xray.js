@@ -20,14 +20,21 @@
     credentials: 'same-origin',
     ...options
   }).then(ensureResponseOk);
-  const requestOpenPath = (path) => requestXray('/_xray/open?path=' + encodeURIComponent(path), {
-    method: 'GET'
-  });
-  const requestConfigUpdate = (editor) => requestXray('/_xray/config', {
+  // The endpoints act on the developer's machine, so they only answer a POST
+  // carrying this header -- a shape no cross-origin markup can produce.
+  const postXray = (url, body) => requestXray(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ editor })
+    headers: {
+      'X-Xray-Request': '1',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: new URLSearchParams(body)
   });
+  const requestOpenPath = (path) => postXray('/_xray/open', { path });
+  const requestConfigUpdate = (editor) => postXray('/_xray/config', { editor });
+  const reportOpenFailure = (path) => (error) => {
+    console.error(`[xray] Could not open ${path}. Is an editor configured in the xray bar?`, error);
+  };
   const runWhenDomReady = (callback) => {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', callback, { once: true });
@@ -274,7 +281,7 @@
       }
 
       box.addEventListener('click', () => {
-        requestOpenPath(this.path).catch(() => {});
+        requestOpenPath(this.path).catch(reportOpenFailure(this.path));
       });
       return box;
     }
@@ -358,7 +365,7 @@
         button.addEventListener('click', () => {
           const path = button.getAttribute('data-path');
           if (path) {
-            requestOpenPath(path).catch(() => {});
+            requestOpenPath(path).catch(reportOpenFailure(path));
           }
         });
       });
