@@ -1,5 +1,6 @@
 require_relative "xray/version"
 require_relative "xray/config"
+require_relative "xray/current"
 require_relative "xray/middleware"
 
 if defined?(Rails) && Rails.env.development?
@@ -11,12 +12,11 @@ require "shellwords"
 
 module Xray
   FILE_PLACEHOLDER = '$file'
-  REQUEST_INFO_KEY = :xray_request_info
 
   # Used to collect request information during each request cycle for use in
   # the Xray bar.
   def self.request_info
-    Thread.current[REQUEST_INFO_KEY] ||= {}
+    Current.request_info
   end
 
   def self.open_file(file)

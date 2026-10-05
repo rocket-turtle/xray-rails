@@ -11,11 +11,14 @@
         </span>
       <% end %>
       <% if Xray.request_info[:view] && Xray.request_info.fetch(:controller, {})[:name] != "Rails::InfoController" %>
-        <% layout_path = lookup_context.find(Xray.request_info[:view][:layout]).identifier %>
-        <span class="xray-bar-btn xray-bar-layout xray-icon-columns" data-path="<%= layout_path %>">
-          <b></b>
-          <%= layout_path.split('/').last %>
-        </span>
+        <%# The layout may not resolve under the partial's own formats or details; find would raise and take the page down with it. %>
+        <% layout_path = lookup_context.find_all(Xray.request_info[:view][:layout]).first&.identifier %>
+        <% if layout_path %>
+          <span class="xray-bar-btn xray-bar-layout xray-icon-columns" data-path="<%= layout_path %>">
+            <b></b>
+            <%= layout_path.split('/').last %>
+          </span>
+        <% end %>
         <span class="xray-bar-btn xray-bar-view xray-icon-doc" data-path="<%= Xray.request_info[:view][:path] %>">
           <%= Xray.request_info[:view][:path].split('/').last %>
         </span>

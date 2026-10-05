@@ -22,13 +22,14 @@ module Xray
       # This event is called near the beginning of a request cycle. We use it to
       # collect information about the controller and action that is responding, for
       # display in the Xray bar.
-      ActiveSupport::Notifications.subscribe('start_processing.action_controller') do |*args|
-        event           = ActiveSupport::Notifications::Event.new(*args)
+      ActiveSupport::Notifications.subscribe('start_processing.action_controller') do |event|
         controller_name = event.payload[:controller]
         action_name     = event.payload[:action]
-        path            = ActiveSupport::Dependencies.search_for_file(controller_name.underscore)
-
-        Xray.request_info.clear
+        # Ruby knows where every loaded constant was defined, which also finds
+        # controllers from engines and gems outside the app's autoload paths.
+        # A constant still waiting on its autoload reports where the autoload
+        # was set up instead, so it is loaded first.
+        path            = controller_name.safe_constantize && Object.const_source_location(controller_name)&.first
 
         Xray.request_info[:controller] = {
           :path   => path,
@@ -41,8 +42,7 @@ module Xray
       # ActionView renders a template. The first time it's called will most
       # likely be the view the controller is rendering, which is what we're
       # interested in.
-      ActiveSupport::Notifications.subscribe('render_template.action_view') do |*args|
-        event  = ActiveSupport::Notifications::Event.new(*args)
+      ActiveSupport::Notifications.subscribe('render_template.action_view') do |event|
         layout = event.payload[:layout]
         path   = event.payload[:identifier]
 

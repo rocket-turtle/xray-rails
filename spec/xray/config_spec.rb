@@ -32,6 +32,42 @@ describe Xray::Config do
     end
   end
 
+  context "a hand-edited config file" do
+    let(:dir) { Dir.mktmpdir }
+    let(:file) { File.join(dir, '.xrayconfig') }
+    let(:config) { Xray::Config.new }
+
+    before do
+      allow(config).to receive(:config_file).and_return(file)
+      allow(config).to receive(:default_editor).and_return('vim')
+    end
+    after { FileUtils.remove_entry(dir) }
+
+    it "accepts string keys" do
+      File.write(file, "editor: code\n")
+      expect(config.editor).to eq('code')
+    end
+
+    it "accepts the symbol keys Xray writes" do
+      config.editor = 'emacs'
+      expect(Xray::Config.new.tap { |c| allow(c).to receive(:config_file).and_return(file) }.editor).to eq('emacs')
+    end
+
+    it "falls back to the default when the file is empty or holds no settings" do
+      ["", "just a string\n", "- a\n- list\n"].each do |content|
+        File.write(file, content)
+        expect(config.editor).to eq('vim'), content.inspect
+      end
+    end
+
+    it "warns and falls back to the default when the file cannot be loaded" do
+      ["editor: [unclosed\n", "editor: !ruby/object:Object {}\n"].each do |content|
+        File.write(file, content)
+        expect { expect(config.editor).to eq('vim') }.to output(/\[xray\] Ignoring/).to_stderr
+      end
+    end
+  end
+
   context ".config_file" do
     it "should use $HOME/.xrayconfig as default config file" do
       allow(Dir).to receive(:home).and_return('/home')

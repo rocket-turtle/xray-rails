@@ -1,7 +1,9 @@
+require "yaml"
+
 module Xray
 
   def self.config
-    @@config ||= Config.new
+    @config ||= Config.new
   end
 
   class Config
@@ -42,16 +44,23 @@ module Xray
 
     def write_config(new_config)
       config = load_config.merge(new_config)
-      File.open(config_file, 'w') { |f| f.write(config.to_yaml) }
+      File.write(config_file, config.to_yaml)
     end
 
     def load_config
       default_config.merge(local_config)
     end
 
+    # Symbolizing the keys accepts a hand-written `editor:` as well as the
+    # `:editor:` Xray writes. An empty file loads as false and a bare scalar as
+    # itself, neither of which carries any settings.
     def local_config
-      YAML.load_file(config_file)
-    rescue
+      config = YAML.load_file(config_file, symbolize_names: true)
+      config.is_a?(Hash) ? config : {}
+    rescue Errno::ENOENT
+      {}
+    rescue Psych::Exception => e
+      warn "[xray] Ignoring #{config_file}: #{e.message}"
       {}
     end
 

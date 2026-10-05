@@ -58,8 +58,19 @@ lesser changes or bug fixes.
 * Report a misconfigured editor as a 500 rather than an unhandled exception, and refuse to persist an
   editor command that cannot be parsed. Exec'ing the editor directly surfaces a missing binary as
   `SystemCallError` and an unbalanced quote as `ArgumentError`, neither of which a shell used to raise.
-* Namespace the thread-local used for request info, and stop hardcoding `$file` next to the
-  `FILE_PLACEHOLDER` constant that defines it.
+* Stop hardcoding `$file` next to the `FILE_PLACEHOLDER` constant that defines it.
+* Narrow the rescue around `.xrayconfig` parsing to `Errno::ENOENT` and `Psych::Exception`, and
+  warn on a file Psych refuses to load rather than silently falling back to defaults. Accept a
+  hand-written `editor:` key, and ignore an empty file or one holding no settings instead of crashing
+  every `/_xray/open` with a `TypeError`.
+* Find the controller file with `Object.const_source_location` instead of the private
+  `ActiveSupport::Dependencies.search_for_file`, which only searched the app's autoload paths and left
+  the controller button of engine and gem controllers without a path.
+* Keep the request info in an `ActiveSupport::CurrentAttributes` class instead of `Thread.current`.
+  It was only cleared when the next controller started, so a pooled thread rendering outside a
+  controller showed the previous request's controller and view.
+* Leave out the layout button when the layout does not resolve from the bar partial instead of
+  raising `ActionView::MissingTemplate` and failing the whole page.
 
 ## [0.6.0][] (2026-04-21)
 
